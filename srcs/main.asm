@@ -1,4 +1,4 @@
-INCLUDE "../utils/hardware.inc"
+INCLUDE "utils/hardware.inc"
 
 SECTION "Header", ROM0[$100]
 
@@ -12,10 +12,10 @@ EntryPoint:
 WaitVBlank:
 	ld a, [rLY]
 	cp 144
-	jp c, WaitVBlank
+	jp nc, Main
 
 	; Turn the LCD off
-	ld a, 0
+	xor a
 	ld [rLCDC], a
 
 	; Copy the Knight tile in memory
@@ -25,7 +25,7 @@ WaitVBlank:
 	call Memcopy
 
 	; Clear OAM
-	ld a, 0
+	xor a
 	ld b, 160
 	ld hl, _OAMRAM
 
@@ -40,7 +40,7 @@ ClearOam:
 	ld [hli], a
 	ld a, 16 + 8
 	ld [hli], a
-	ld a, 0
+	xor a
 	ld [hli], a
 	ld [hl], a
 
@@ -52,33 +52,9 @@ ClearOam:
 	ld [hli], a
 	ld a, 1
 	ld [hli], a
-	ld a, 0
+	xor a
 	ld [hli], a
 	ld [hl], a
-
-	; ; Set knight_walk_1
-	; ld hl, _OAMRAM + 8
-	; ld a, 0 + 16
-	; ld [hli], a
-	; ld a, 0 + 8
-	; ld [hli], a
-	; ld a, 2
-	; ld [hli], a
-	; ld a, 0
-	; ld [hli], a
-	; ld [hl], a
-
-	; ; Set knight_walk_2
-	; ld hl, _OAMRAM + 12
-	; ld a, 8 + 16
-	; ld [hli], a
-	; ld a, 0 + 8
-	; ld [hli], a
-	; ld a, 3
-	; ld [hli], a
-	; ld a, 0
-	; ld [hli], a
-	; ld [hl], a
 
 	; Turn the LCD on
 	ld a, LCDCF_ON | LCDCF_OBJON
@@ -91,7 +67,7 @@ ClearOam:
 	ld [rOBP0], a ; Object register 0
 
 	; Initialize global variables
-	ld a, 0
+	xor a
 	ld [wFrameCounter], a
 	ld [wCurKeys], a
 	ld [wNewKeys], a
@@ -153,17 +129,9 @@ Left:
 	ld [$FE06], a
 
 	; Reset the frame counter back to 0
-	ld a, 0
+	xor a
 	ld [wFrameCounter], a
 	jp Main
-
-
-; 	ld bc, $1388
-; .delay
-;	 ld a, b
-;	 or c
-;	 dec bc
-;	 jr nz, .delay
 
 ; Then check the right button.
 CheckRight:
@@ -172,14 +140,14 @@ CheckRight:
 	jp z, Main
 Right:
 	; Flip knight_top
-	ld a, 0
+	xor a
 	ld [_OAMRAM + 3], a
 	; Move the Knight1 one pixel to the right. OAMRAM + 1 bc we move X, OAMRAM is Y
 	ld a, [_OAMRAM + 1]
 	inc a
 	ld [_OAMRAM + 1], a
 	; Flip knight_bottom
-	ld a, 0
+	xor a
 	ld [_OAMRAM + 7], a
 	; Move the knight_bottom one pixel to the right.
 	ld a, [_OAMRAM + 5]
@@ -187,11 +155,15 @@ Right:
 	ld [_OAMRAM + 5], a
 
 	; Update walking animation frame
-	; Wait 7 frames before updating the walking animation
+	; Check if current frame is idle, if yes jump right to update_frame
+	ld a, [$FE06]
+	cp a, 1
+	jr z, .update_frame
+	; Wait 10 frames before updating the walking animation
 	ld a, [wFrameCounter]
 	inc a
 	ld [wFrameCounter], a
-	cp a, 10 ; Every 7 frames, update the frame
+	cp a, 10 ; Every 10 frames, update the animation frame
 	jr z, .update_frame
 	jp Main ; Else, go back to main
 
@@ -205,7 +177,7 @@ Right:
 	ld [$FE06], a
 
 	; Reset the frame counter back to 0
-	ld a, 0
+	xor a
 	ld [wFrameCounter], a
 	jp Main
 
@@ -259,7 +231,7 @@ UpdateKeys:
 .knownret
   ret
 
-KnightTileData: INCBIN "../includes/assets/knight_sprites.2bpp"
+KnightTileData: INCBIN "resources/knight_sprites.2bpp"
 KnightTileDataEnd:
 
 SECTION "Counter", WRAM0
