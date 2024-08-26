@@ -1,4 +1,5 @@
 INCLUDE "utils/hardware.inc"
+INCLUDE "utils/utils.asm"
 
 SECTION "Header", ROM0[$100]
 
@@ -10,13 +11,9 @@ EntryPoint:
 	; Do not turn the LCD off outside of VBlank
 
 WaitVBlank:
-	ld a, [rLY]
-	cp 144
-	jp nc, Main
+	call wait_vblank
 
-	; Turn the LCD off
-	xor a
-	ld [rLCDC], a
+	call turn_off_lcd
 
 	; Copy the Knight tile in memory
 	ld de, KnightTileData
@@ -24,15 +21,7 @@ WaitVBlank:
 	ld bc, KnightTileDataEnd - KnightTileData
 	call Memcopy
 
-	; Clear OAM
-	xor a
-	ld b, 160
-	ld hl, _OAMRAM
-
-ClearOam:
-	ld [hli], a
-	dec b
-	jp nz, ClearOam
+	call clear_oam
 
 	; Set knight_top
 	ld hl, _OAMRAM
@@ -53,12 +42,10 @@ ClearOam:
 	ld a, 1
 	ld [hli], a
 	xor a
-	ld [hli], a
 	ld [hl], a
 
-	; Turn the LCD on
 	ld a, LCDCF_ON | LCDCF_OBJON
-	ld [rLCDC], a
+	call turn_on_lcd
 
 	; During the first (blank) frame, initialize display registers
 	ld a, %11100100
@@ -73,14 +60,12 @@ ClearOam:
 	ld [wNewKeys], a
 
 Main:
-	ld a, [rLY]
-	cp 144
-	jp nc, Main
+	; We need to make sure we wait for VBlank to be done before moving on to the next frame
+	call wait_not_vblank
 
 WaitVBlank2:
-	ld a, [rLY]
-	cp 144
-	jp c, WaitVBlank2
+	;Then we can wait for VBlank before making any changes
+	call wait_vblank
 
 	; Check the current keys every frame and move left or right.
 	call UpdateKeys
