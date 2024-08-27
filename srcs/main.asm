@@ -3,23 +3,23 @@ INCLUDE "utils/utils.asm"
 
 SECTION "Header", ROM0[$100]
 
-	jp EntryPoint
+	jp entry_point
 
 	ds $150 - @, 0 ; Make room for the header
 
-EntryPoint:
+entry_point:
 	; Do not turn the LCD off outside of VBlank
 
-WaitVBlank:
+initialise:
 	call wait_vblank
 
 	call turn_off_lcd
 
-	; Copy the Knight tile in memory
-	ld de, KnightTileData
+	; Copy the Knight tile in VRAM
+	ld de, knight_tile_data
 	ld hl, $8000
-	ld bc, KnightTileDataEnd - KnightTileData
-	call Memcopy
+	ld bc, knight_tile_data_end - knight_tile_data
+	call mem_copy
 
 	call clear_oam
 
@@ -48,34 +48,33 @@ WaitVBlank:
 	call turn_on_lcd
 
 	; During the first (blank) frame, initialize display registers
-	ld a, %11100100
-	ld [rBGP], a ; Display register
+	; ld a, %11100100
+	; ld [rBGP], a ; Background register
 	ld a, %11100100
 	ld [rOBP0], a ; Object register 0
 
 	; Initialize global variables
 	xor a
-	ld [wFrameCounter], a
-	ld [wCurKeys], a
-	ld [wNewKeys], a
+	ld [w_frame_counter], a
+	ld [w_cur_keys], a
+	ld [w_new_keys], a
 
-Main:
+main:
 	; We need to make sure we wait for VBlank to be done before moving on to the next frame
 	call wait_not_vblank
 
-WaitVBlank2:
 	;Then we can wait for VBlank before making any changes
 	call wait_vblank
 
-	; Check the current keys every frame and move left or right.
-	call UpdateKeys
+	; Check the current keys every frame
+	call update_keys
 
-	; First, check if the left button is pressed.
-CheckLeft:
-	ld a, [wCurKeys]
+; First, check if the left button is pressed.
+check_left:
+	ld a, [w_cur_keys]
 	and a, PADF_LEFT
-	jp z, CheckRight
-Left:
+	jp z, check_right
+left:
 	; Flip knight_top
 	ld a, %00100000
 	ld [_OAMRAM + 3], a
@@ -90,40 +89,15 @@ Left:
 	ld a, [_OAMRAM + 5]
 	dec a
 	ld [_OAMRAM + 5], a
-
-	; Update walking animation frame
-	; Check if current frame is idle, if yes jump right to update_frame
-	ld a, [$FE06]
-	cp a, 1
-	jr z, .update_frame
-	; Wait 10 frames before updating the walking animation
-	ld a, [wFrameCounter]
-	inc a
-	ld [wFrameCounter], a
-	cp a, 10 ; Every 10 frames, update the frame
-	jr z, .update_frame
-	jp Main ; Else, go back to main
-
-.update_frame
-	ld a, [$FE06]
-	inc a
-	cp a, 4
-	jr nz, .update_sprite_index ; If still in range, set frame 1 or 2 of anim
-	ld a, 2 ; Else, we're past the last index so set it back to first frame of anim
-.update_sprite_index
-	ld [$FE06], a
-
-	; Reset the frame counter back to 0
-	xor a
-	ld [wFrameCounter], a
-	jp Main
+	call update_knight_walk
+	jp main
 
 ; Then check the right button.
-CheckRight:
-	ld a, [wCurKeys]
+check_right:
+	ld a, [w_cur_keys]
 	and a, PADF_RIGHT
-	jp z, Main
-Right:
+	jp z, no_input
+right:
 	; Flip knight_top
 	xor a
 	ld [_OAMRAM + 3], a
@@ -138,19 +112,30 @@ Right:
 	ld a, [_OAMRAM + 5]
 	inc a
 	ld [_OAMRAM + 5], a
+	call update_knight_walk
+	jp main
 
-	; Update walking animation frame
+; Actions when no input
+no_input:
+	; Go back to idle
+	ld a, 1
+	ld [$FE06], a
+	jp main
+
+
+; Update walking animation frame
+update_knight_walk:
 	; Check if current frame is idle, if yes jump right to update_frame
 	ld a, [$FE06]
 	cp a, 1
 	jr z, .update_frame
 	; Wait 10 frames before updating the walking animation
-	ld a, [wFrameCounter]
+	ld a, [w_frame_counter]
 	inc a
-	ld [wFrameCounter], a
+	ld [w_frame_counter], a
 	cp a, 10 ; Every 10 frames, update the animation frame
 	jr z, .update_frame
-	jp Main ; Else, go back to main
+	ret ; Else, ret
 
 .update_frame
 	ld a, [$FE06]
@@ -163,65 +148,52 @@ Right:
 
 	; Reset the frame counter back to 0
 	xor a
-	ld [wFrameCounter], a
-	jp Main
-
-; Copy bytes from one area to another.
-; @param de: Source
-; @param hl: Destination
-; @param bc: Length
-Memcopy:
-	ld a, [de]
-	ld [hli], a
-	inc de
-	dec bc
-	ld a, b
-	or a, c
-	jp nz, Memcopy
+	ld [w_frame_counter], a
 	ret
 
-UpdateKeys:
-  ; Poll half the controller
-  ld a, P1F_GET_BTN
-  call .onenibble
-  ld b, a ; B7-4 = 1; B3-0 = unpressed buttons
+update_keys:
+	; Poll half the controller
+	ld a, P1F_GET_BTN
+	call .one_nibble
+	ld b, a ; B7-4 = 1; B3-0 = unpressed buttons
 
-  ; Poll the other half
-  ld a, P1F_GET_DPAD
-  call .onenibble
-  swap a ; A3-0 = unpressed directions; A7-4 = 1
-  xor a, b ; A = pressed buttons + directions
-  ld b, a ; B = pressed buttons + directions
+	; Poll the other half
+	ld a, P1F_GET_DPAD
+	call .one_nibble
+	swap a ; A3-0 = unpressed directions; A7-4 = 1
+	xor a, b ; A = pressed buttons + directions
+	ld b, a ; B = pressed buttons + directions
 
-  ; And release the controller
-  ld a, P1F_GET_NONE
-  ldh [rP1], a
+	; And release the controller
+	ld a, P1F_GET_NONE
+	ldh [rP1], a
 
-  ; Combine with previous wCurKeys to make wNewKeys
-  ld a, [wCurKeys]
-  xor a, b ; A = keys that changed state
-  and a, b ; A = keys that changed to pressed
-  ld [wNewKeys], a
-  ld a, b
-  ld [wCurKeys], a
-  ret
+	; Combine with previous w_cur_keys to make w_new_keys
+	ld a, [w_cur_keys]
+	xor a, b ; A = keys that changed state
+	and a, b ; A = keys that changed to pressed
+	ld [w_new_keys], a
+	ld a, b
+	ld [w_cur_keys], a
+	ret
 
-.onenibble
-  ldh [rP1], a ; switch the key matrix
-  call .knownret ; burn 10 cycles calling a known ret
-  ldh a, [rP1] ; ignore value while waiting for the key matrix to settle
-  ldh a, [rP1]
-  ldh a, [rP1] ; this read counts
-  or a, $F0 ; A7-4 = 1; A3-0 = unpressed keys
-.knownret
-  ret
+.one_nibble
+	ldh [rP1], a ; switch the key matrix
+	call .known_ret ; burn 10 cycles calling a known ret
+	ldh a, [rP1] ; ignore value while waiting for the key matrix to settle
+	ldh a, [rP1]
+	ldh a, [rP1] ; this read counts
+	or a, $F0 ; A7-4 = 1; A3-0 = unpressed keys
+.known_ret
+	ret
 
-KnightTileData: INCBIN "resources/knight_sprites.2bpp"
-KnightTileDataEnd:
+SECTION "Resources", ROM0
+knight_tile_data: INCBIN "resources/knight_sprites.2bpp"
+knight_tile_data_end:
 
 SECTION "Counter", WRAM0
-wFrameCounter: db
+w_frame_counter: db
 
 SECTION "Input Variables", WRAM0
-wCurKeys: db
-wNewKeys: db
+w_cur_keys: db
+w_new_keys: db

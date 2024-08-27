@@ -24,24 +24,28 @@ turn_on_lcd:
 	ld [rLCDC], a
 	ret
 
-setDefaultPalette:
+set_default_palette:
 	ld a, %11100100
 	ld [rBGP], a
 	ld [rOBP0], a
 	ret
 
-copyToVram:
+; Copy bytes from one area to another.
+; @param de: Source
+; @param hl: Destination
+; @param bc: Length
+mem_copy:
 	ld a, [de]
-	ld [hli], a ; ld [hl], a ; inc hl
+	ld [hli], a
 	inc de
 	dec bc
 	ld a, b
-	or c
-	jr nz, copyToVram
+	or a, c
+	jp nz, mem_copy
 	ret
 
 ; fill the screen with the tile at address in register b
-fillScreen:
+fill_screen:
 	ld hl, _SCRN0
 .clear
 	ld a, b
