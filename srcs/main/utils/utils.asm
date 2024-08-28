@@ -1,7 +1,11 @@
-include "srcs/main/utils/hardware.inc"
+INCLUDE "srcs/main/utils/hardware.inc"
 
 DEF GRAVITY			EQU 1
 DEF JUMP_STRENGHT	EQU -10
+
+SECTION "VBlankVariables", WRAM0
+
+w_vblank_count:: db 
 
 SECTION "VBlank functions", ROM0
 
@@ -49,7 +53,7 @@ clear_background:
 	di
 	ret
 
-SECTION "MemoryUtilsSection", ROM0
+SECTION "Memory functions", ROM0
 
 ; @param de: Source
 ; @param hl: Destination
@@ -61,7 +65,21 @@ copy_de_into_memory_at_hl:
 	dec bc
 	ld a, b
 	or c
-	jp nz, copy_de_into_memory_at_hl ; Jump to CopyTiles if the last operation had a non zero result.
+	jp nz, copy_de_into_memory_at_hl
+	ret
+
+; @param de: Source
+; @param hl: Destination
+; @param bc: Length
+copy_de_into_memory_at_hl_with_52_offset:
+	ld a, [de]
+	add a, 52
+	ld [hli], a
+	inc de
+	dec bc
+	ld a, b
+	or c
+	jp nz, copy_de_into_memory_at_hl_with_52_offset
 	ret
 
 ; fill the screen with the tile at address in register b

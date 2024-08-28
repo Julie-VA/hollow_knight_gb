@@ -1,5 +1,4 @@
-include "srcs/main/utils/hardware.inc"
-; include "libs/sporbs_lib.asm"
+INCLUDE "srcs/main/utils/hardware.inc"
 
 SECTION "SpriteVariables", WRAM0
 
