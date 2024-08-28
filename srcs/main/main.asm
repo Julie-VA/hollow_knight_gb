@@ -1,5 +1,12 @@
-INCLUDE "utils/hardware.inc"
-INCLUDE "utils/utils.asm"
+INCLUDE "srcs/main/utils/hardware.inc"
+INCLUDE "srcs/main/utils/utils.asm"
+
+SECTION "GameVariables", WRAM0
+
+w_last_keys:: db
+w_cur_keys:: db
+w_new_keys:: db
+w_game_state:: db
 
 SECTION "Header", ROM0[$100]
 
@@ -58,6 +65,8 @@ initialise:
 	ld [w_frame_counter], a
 	ld [w_cur_keys], a
 	ld [w_new_keys], a
+	ld [w_knight_y_velocity], a
+	ld [w_knight_jumping], a
 
 main:
 	; We need to make sure we wait for VBlank to be done before moving on to the next frame
@@ -69,6 +78,28 @@ main:
 	; Check the current keys every frame
 	call update_keys
 
+check_up:
+	ld a, [w_cur_keys]
+	and a, PADF_UP
+	jp z, check_left
+up:
+	; Check if knight is already jumping
+	ld a, [w_knight_jumping]
+	cp 0
+	jr nz, .no_jump
+
+	; Jump
+	ld a, JUMP_STRENGHT
+	ld [w_knight_y_velocity], a
+
+	; Mark knight as jumping
+	ld a, 1
+	ld [w_knight_jumping], a
+
+.no_jump
+	jp main
+
+
 ; First, check if the left button is pressed.
 check_left:
 	ld a, [w_cur_keys]
@@ -78,13 +109,12 @@ left:
 	; Flip knight_top
 	ld a, %00100000
 	ld [_OAMRAM + 3], a
+	; Flip knight_bottom
+	ld [_OAMRAM + 7], a
 	; Move the knight_top one pixel to the left. OAMRAM + 1 bc we move X, OAMRAM is Y
 	ld a, [_OAMRAM + 1]
 	dec a
 	ld [_OAMRAM + 1], a
-	; Flip knight_bottom
-	ld a, %00100000
-	ld [_OAMRAM + 7], a
 	; Move the knight_bottom one pixel to the right.
 	ld a, [_OAMRAM + 5]
 	dec a
@@ -101,13 +131,12 @@ right:
 	; Flip knight_top
 	xor a
 	ld [_OAMRAM + 3], a
+	; Flip knight_bottom
+	ld [_OAMRAM + 7], a
 	; Move the Knight1 one pixel to the right. OAMRAM + 1 bc we move X, OAMRAM is Y
 	ld a, [_OAMRAM + 1]
 	inc a
 	ld [_OAMRAM + 1], a
-	; Flip knight_bottom
-	xor a
-	ld [_OAMRAM + 7], a
 	; Move the knight_bottom one pixel to the right.
 	ld a, [_OAMRAM + 5]
 	inc a
@@ -121,7 +150,6 @@ no_input:
 	ld a, 1
 	ld [$FE06], a
 	jp main
-
 
 ; Update walking animation frame
 update_knight_walk:
@@ -194,6 +222,6 @@ knight_tile_data_end:
 SECTION "Counter", WRAM0
 w_frame_counter: db
 
-SECTION "Input Variables", WRAM0
-w_cur_keys: db
-w_new_keys: db
+SECTION "Gameplay Variables", WRAM0
+w_knight_y_velocity: db
+w_knight_jumping: db

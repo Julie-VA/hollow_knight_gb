@@ -1,4 +1,7 @@
-INCLUDE "utils/hardware.inc"
+INCLUDE "srcs/main/utils/hardware.inc"
+
+DEF GRAVITY			EQU 1
+DEF JUMP_STRENGHT	EQU -10
 
 SECTION "Functions", ROM0
 

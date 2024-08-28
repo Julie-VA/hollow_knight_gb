@@ -1,8 +1,10 @@
-NAME = hollow_knight.gb
-
+NAME		= hollow_knight
 SRCS_DIR	= srcs
+ASM_DIR		= $(SRCS_DIR)/main
 UTILS_DIR	= utils
-GEN_DIR		= generated
+OBJ_DIR		= obj
+DST_DIR		= dist
+BINS		= $(DST_DIR)/$(NAME).gb
 
 SRCS =	$(SRCS_DIR)/main.asm	\
 		$(UTILS_DIR)/utils.asm
@@ -11,36 +13,78 @@ ASM		= rgbasm
 LINK	= rgblink
 FIX		= rgbfix
 
-FIXFLAGS = -v -p 0xFF
+FIX_FLAGS	= -v -p 0xFF
 
 RM = rm -f
 
-OBJS = $(patsubst $(SRCS_DIR)/%.asm,$(GEN_DIR)/%.o,$(SRCS))
-OBJS += $(patsubst $(UTILS_DIR)/%.asm,$(GEN_DIR)/%.o,$(SRCS))
+# https://stackoverflow.com/a/18258352
+# Make does not offer a recursive wild card function, so here's one:
+rwildcard = $(foreach d,\
+		$(wildcard $(1:=/*)), \
+		$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d) \
+	)
+
+# https://stackoverflow.com/a/16151140
+# This makes it so every entry in a space-delimited list appears only once
+unique = $(if $1,\
+			$(firstword $1) $(call unique,$(filter-out $(firstword $1),$1)) \
+		)
+
+ASM_SOURCES_COLLECTED = \
+			$(call rwildcard,$(ASM_DIR),*.asm)
+
+OBJS = $(patsubst %.asm,$(OBJ_DIR)/%.o,$(notdir $(ASM_SOURCES_COLLECTED)))
+
+# OBJS = $(patsubst $(SRCS_DIR)/%.asm,$(OBJ_DIR)/%.o,$(SRCS))
+# OBJS += $(patsubst $(UTILS_DIR)/%.asm,$(OBJ_DIR)/%.o,$(SRCS))
 
 # Build target
-all: $(GEN_DIR) $(NAME)
+all: $(BINS)
+
+# ANCHOR: generate-objects
+# Extract directories from collected ASM sources and append "%.asm" to each one,
+# creating a wildcard-rule.
+ASM_SOURCES_DIRS = $(patsubst %,%%.asm,\
+			$(call unique,$(dir $(ASM_SOURCES_COLLECTED))) \
+		)
+
+# This is a Makefile "macro".
+# It defines a %.o target from a corresponding %.asm, ensuring the
+# "prepare" step has ran and the graphics are already generated.
+define object-from-asm
+$(OBJ_DIR)/%.o: $1 | $(OBJ_DIR)
+	$$(ASM) -o $$@ $$<
+endef
+
+# Run the macro for each directory listed in ASM_SOURCES_DIRS, thereby
+# creating the appropriate targets.
+$(foreach i, $(ASM_SOURCES_DIRS), $(eval $(call object-from-asm,$i)))
+# ANCHOR_END: generate-objects
 
 # Rule to build the ROM
-$(NAME): $(OBJS)
+$(BINS): $(OBJS) | $(DST_DIR)
 	$(LINK) -o $@ $<
-	$(FIX) $(FIXFLAGS) $(NAME)
+	$(FIX) $(FIX_FLAGS) $(BINS)
 
-# Rules to assemble each .asm file
-$(GEN_DIR)/%.o: $(SRCS_DIR)/%.asm
-	$(ASM) -o $@ $<
+# # Rules to assemble each .asm file
+# $(OBJ_DIR)/%.o: $(SRCS_DIR)/%.asm
+# 	$(ASM) -o $@ $<
 
-$(GEN_DIR)/%.o: $(UTILS_DIR)/%.asm
-	$(ASM) -o $@ $<
+# $(OBJ_DIR)/%.o: $(UTILS_DIR)/%.asm
+# 	$(ASM) -o $@ $<
 
-# Create generated directory if it doesn't exist
-$(GEN_DIR):
-	mkdir -p $(GEN_DIR)
+# Create directories if they don't exist
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+$(DST_DIR):
+	mkdir -p $(DST_DIR)
 
 # Clean target
 clean:
-	$(RM) $(GEN_DIR)/*.o
-	$(RM) -r $(GEN_DIR)
+	$(RM) $(OBJ_DIR)/*.o
+	$(RM) -r $(OBJ_DIR)
 
 fclean: clean
-	$(RM) $(NAME)
+	$(RM) $(BINS)
+	$(RM) -r $(DST_DIR)
