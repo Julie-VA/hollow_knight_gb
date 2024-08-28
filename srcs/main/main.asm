@@ -1,5 +1,8 @@
-INCLUDE "srcs/main/utils/hardware.inc"
-INCLUDE "srcs/main/utils/utils.asm"
+include "srcs/main/utils/hardware.inc"
+include "libs/sporbs_lib.asm"
+include "srcs/main/utils/utils.asm"
+include "srcs/main/utils/sprites_utils.asm"
+include "srcs/main/utils/text_utils.asm"
 
 SECTION "GameVariables", WRAM0
 
@@ -15,58 +18,67 @@ SECTION "Header", ROM0[$100]
 	ds $150 - @, 0 ; Make room for the header
 
 entry_point:
-	; Do not turn the LCD off outside of VBlank
+	; Turn off audio
+	xor a
+    ld [rNR52], a
 
-initialise:
+	; Initialise game state at 0
+    ld [w_game_state], a
+
 	call wait_vblank
 
-	call turn_off_lcd
+	; Initiliase Sprite Object Library.
+	call InitSprObjLibWrapper
 
-	; Copy the Knight tile in VRAM
-	ld de, knight_tile_data
-	ld hl, $8000
-	ld bc, knight_tile_data_end - knight_tile_data
-	call mem_copy
-
-	call clear_oam
-
-	; Set knight_top
-	ld hl, _OAMRAM
-	ld a, 128 + 16
-	ld [hli], a
-	ld a, 16 + 8
-	ld [hli], a
+	; Turn off LCD
 	xor a
-	ld [hli], a
-	ld [hl], a
+	ld [rLCDC], a
 
-	; Set knight_bottom
-	ld hl, _OAMRAM + 4
-	ld a, 136 + 16
-	ld [hli], a
-	ld a, 16 + 8
-	ld [hli], a
-	ld a, 1
-	ld [hli], a
-	xor a
-	ld [hl], a
+	; Load our common text font into VRAM
+    call load_text_font_into_vram
 
-	ld a, LCDCF_ON | LCDCF_OBJON
-	call turn_on_lcd
+	; Turn on LCD
+	ld a, LCDCF_ON  | LCDCF_BGON | LCDCF_OBJON | LCDCF_WINON | LCDCF_WIN9C00
+	ld [rLCDC], a
 
-	; During the first (blank) frame, initialize display registers
-	; ld a, %11100100
-	; ld [rBGP], a ; Background register
+	; Initialise display registers
 	ld a, %11100100
-	ld [rOBP0], a ; Object register 0
+	ld [rBGP], a
+	ld [rOBP0], a
 
-	; Initialize global variables
+next_game_state::
+	call wait_vblank
+
+	call clear_background
+
+	; Turn off LCD
 	xor a
-	ld [w_frame_counter], a
-	ld [w_cur_keys], a
-	ld [w_new_keys], a
-	ld [w_knight_y_velocity], a
-	ld [w_knight_jumping], a
+	ld [rLCDC], a
+
+	; Set all window values to 0
+	ld [rSCX], a
+    ld [rSCY], a
+    ld [rWX], a
+    ld [rWY], a
+
+	call disable_interrupts
+
+	call clear_all_sprites
+
+	; Initiate the next state
+    ld a, [w_game_state]
+    cp 1 ; 1 = Gameplay
+    ; call z, InitGameplayState
+    ld a, [w_game_state]
+    and a ; 0 = Menu
+    ; call z, InitTitleScreenState
+
+	; Update the next state
+    ld a, [w_game_state]
+    cp 1 ; 1 = Gameplay
+    ; jp z, UpdateGameplayState
+    ; jp UpdateTitleScreenState
+
 
 main:
 	; We need to make sure we wait for VBlank to be done before moving on to the next frame

@@ -1,13 +1,9 @@
 NAME		= hollow_knight
 SRCS_DIR	= srcs
+LIB_DIR		= libs
 ASM_DIR		= $(SRCS_DIR)/main
-UTILS_DIR	= utils
 OBJ_DIR		= obj
-DST_DIR		= dist
-BINS		= $(DST_DIR)/$(NAME).gb
-
-SRCS =	$(SRCS_DIR)/main.asm	\
-		$(UTILS_DIR)/utils.asm
+BINS		= $(NAME).gb
 
 ASM		= rgbasm
 LINK	= rgblink
@@ -31,7 +27,7 @@ unique = $(if $1,\
 		)
 
 ASM_SOURCES_COLLECTED = \
-			$(call rwildcard,$(ASM_DIR),*.asm)
+			$(call rwildcard,$(ASM_DIR),*.asm) $(call rwildcard,$(LIB_DIR),*.asm)
 
 OBJS = $(patsubst %.asm,$(OBJ_DIR)/%.o,$(notdir $(ASM_SOURCES_COLLECTED)))
 
@@ -62,7 +58,7 @@ $(foreach i, $(ASM_SOURCES_DIRS), $(eval $(call object-from-asm,$i)))
 # ANCHOR_END: generate-objects
 
 # Rule to build the ROM
-$(BINS): $(OBJS) | $(DST_DIR)
+$(BINS): $(OBJS)
 	$(LINK) -o $@ $<
 	$(FIX) $(FIX_FLAGS) $(BINS)
 
@@ -77,9 +73,6 @@ $(BINS): $(OBJS) | $(DST_DIR)
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
-$(DST_DIR):
-	mkdir -p $(DST_DIR)
-
 # Clean target
 clean:
 	$(RM) $(OBJ_DIR)/*.o
@@ -87,4 +80,3 @@ clean:
 
 fclean: clean
 	$(RM) $(BINS)
-	$(RM) -r $(DST_DIR)

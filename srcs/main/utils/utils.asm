@@ -1,9 +1,9 @@
-INCLUDE "srcs/main/utils/hardware.inc"
+include "srcs/main/utils/hardware.inc"
 
 DEF GRAVITY			EQU 1
 DEF JUMP_STRENGHT	EQU -10
 
-SECTION "Functions", ROM0
+SECTION "VBlank functions", ROM0
 
 wait_vblank:
 	ld a, [rLY]
@@ -17,34 +17,51 @@ wait_not_vblank:
 	jr nc, wait_not_vblank
 	ret
 
-turn_off_lcd:
-	xor a ; ld a, 0
+SECTION "Background functions", ROM0
+
+clear_background:
+	; Turn off LCD
+	xor a
 	ld [rLCDC], a
-	ret
 
-; @param a: byte containing info about what display(s) to turn on
-turn_on_lcd:
+	ld bc, 1024
+	ld hl, $9800
+
+.clear_background_loop:
+	xor a
+	ld [hli], a
+	dec bc
+	ld a, b
+	or c
+	jp nz, .clear_background_loop
+
+	; Turn on LCD
+	ld a, LCDCF_ON  | LCDCF_BGON|LCDCF_OBJON | LCDCF_OBJ16
 	ld [rLCDC], a
+
 	ret
 
-set_default_palette:
-	ld a, %11100100
-	ld [rBGP], a
-	ld [rOBP0], a
+ SECTION "Interrupts", ROM0
+
+ disable_interrupts:
+	xor a
+	ldh [rSTAT], a
+	di
 	ret
 
-; Copy bytes from one area to another.
+SECTION "MemoryUtilsSection", ROM0
+
 ; @param de: Source
 ; @param hl: Destination
 ; @param bc: Length
-mem_copy:
+copy_de_into_memory_at_hl:
 	ld a, [de]
 	ld [hli], a
 	inc de
 	dec bc
 	ld a, b
-	or a, c
-	jp nz, mem_copy
+	or c
+	jp nz, copy_de_into_memory_at_hl ; Jump to CopyTiles if the last operation had a non zero result.
 	ret
 
 ; fill the screen with the tile at address in register b
