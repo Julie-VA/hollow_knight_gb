@@ -1,9 +1,9 @@
 INCLUDE "srcs/main/utils/hardware.inc"
-INCLUDE "libs/sporbs_lib.asm"
-INCLUDE "srcs/main/states/title_screen/title_screen_state.asm"
-INCLUDE "srcs/main/utils/utils.asm"
-INCLUDE "srcs/main/utils/sprites_utils.asm"
-INCLUDE "srcs/main/utils/text_utils.asm"
+; INCLUDE "libs/sporbs_lib.asm"
+; INCLUDE "srcs/main/states/title_screen/title_screen_state.asm"
+; INCLUDE "srcs/main/utils/utils.asm"
+; INCLUDE "srcs/main/utils/sprites_utils.asm"
+; INCLUDE "srcs/main/utils/text_utils.asm"
 
 SECTION "GameVariables", WRAM0
 
@@ -23,26 +23,23 @@ entry_point:
 	xor a
     ld [rNR52], a
 
-	; Initialise game state at 0
+	; initialize game state at 0
     ld [w_game_state], a
 
 	call wait_vblank
 
-	; Initiliase Sprite Object Library.
+	; initialize Sprite Object Library.
 	call InitSprObjLibWrapper
 
 	; Turn off LCD
 	xor a
 	ld [rLCDC], a
 
-	; Load our common text font into VRAM
-    call load_text_font_into_vram
-
 	; Turn on LCD
 	ld a, LCDCF_ON  | LCDCF_BGON | LCDCF_OBJON | LCDCF_WINON | LCDCF_WIN9C00
 	ld [rLCDC], a
 
-	; Initialise display registers
+	; initialize display registers
 	ld a, %11100100
 	ld [rBGP], a
 	ld [rOBP0], a
@@ -50,7 +47,7 @@ entry_point:
 next_game_state::
 	call wait_vblank
 
-	call clear_background
+	call clear_background_tilemap
 
 	; Turn off LCD
 	xor a
@@ -69,9 +66,9 @@ next_game_state::
 	; Initiate the next state
     ld a, [w_game_state]
     cp 1 ; 1 = Gameplay
-    ; call z, InitGameplayState
-    ld a, [w_game_state]
-    and a ; 0 = Menu
+    call z, init_gameplay_state
+    ld a, [w_game_state] ;Can get rid of this when init gameplay state is done
+    and a ; 0 = Menu ;Can get rid of this when init gameplay state is done
     call z, init_title_screen_state
 
 	; Update the next state

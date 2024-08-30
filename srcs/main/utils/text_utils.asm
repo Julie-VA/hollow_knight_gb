@@ -1,9 +1,11 @@
+INCLUDE "srcs/main/utils/hardware.inc"
+
 SECTION "Text", ROM0
 
 text_font_tile_data: INCBIN "resources/area51_font.2bpp"
 text_font_tile_data_end:
 
-load_text_font_into_vram:
+load_text_font_into_vram::
 	; Copy the tile data
 	ld de, text_font_tile_data ; de contains the address where data will be copied from;
 	ld hl, $9000 ; hl contains the address where data will be copied to;
@@ -12,7 +14,7 @@ load_text_font_into_vram:
 
 ; @param de: which tile to start on
 ; @param hl: address of text
-draw_text_tiles_loop:
+draw_text_tiles_loop::
     ; Check for the end of string character 255
     ld a, [hl]
     cp 255

@@ -1,5 +1,5 @@
 INCLUDE "srcs/main/utils/hardware.inc"
-INCLUDE "libs/input.asm"
+; INCLUDE "libs/input.asm"
 
 SECTION "InputUtilsVariables", WRAM0
 
@@ -7,10 +7,9 @@ m_wait_key:: db
 
 SECTION "InputUtils", ROM0
 
-wait_for_key_function:
+wait_for_key_function::
     ; Save our original value
     push bc
-
 	
 wait_for_key_function_loop:
 	; save the keys last frame

@@ -59,15 +59,8 @@ $(foreach i, $(ASM_SOURCES_DIRS), $(eval $(call object-from-asm,$i)))
 
 # Rule to build the ROM
 $(BINS): $(OBJS)
-	$(LINK) -o $@ $<
+	$(LINK) -o $@ $(patsubst %.asm,$(OBJ_DIR)/%.o,$(notdir $(ASM_SOURCES_COLLECTED)))
 	$(FIX) $(FIX_FLAGS) $(BINS)
-
-# # Rules to assemble each .asm file
-# $(OBJ_DIR)/%.o: $(SRCS_DIR)/%.asm
-# 	$(ASM) -o $@ $<
-
-# $(OBJ_DIR)/%.o: $(UTILS_DIR)/%.asm
-# 	$(ASM) -o $@ $<
 
 # Create directories if they don't exist
 $(OBJ_DIR):
