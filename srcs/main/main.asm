@@ -48,20 +48,19 @@ next_game_state::
 	call wait_vblank
 
 	call clear_background_tilemap
+	call clear_oam
 
 	; Turn off LCD
 	xor a
 	ld [rLCDC], a
 
 	; Set all window values to 0
-	ld [rSCX], a
-    ld [rSCY], a
-    ld [rWX], a
-    ld [rWY], a
+	; ld [rSCX], a
+    ; ld [rSCY], a
+    ; ld [rWX], a
+    ; ld [rWY], a
 
 	call disable_interrupts
-
-	call clear_all_sprites
 
 	; Initiate the next state
     ld a, [w_game_state]
@@ -74,7 +73,7 @@ next_game_state::
 	; Update the next state
     ld a, [w_game_state]
     cp 1 ; 1 = Gameplay
-    ; jp z, update_gameplay_state
+    jp z, update_gameplay_state
     jp update_title_screen_state
 
 

@@ -115,7 +115,7 @@ fill_screen:
 	jr nz, .clear
 	ret
 
-clear_oam:
+clear_oam::
 	ld hl, _OAMRAM
 .clear
 	xor a
