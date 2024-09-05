@@ -7,6 +7,7 @@ w_player_position_x::	db
 w_player_position_y::	db
 w_player_velocity_y::	db
 w_player_jumping::		db
+w_player_up_speed::		db
 w_gravity_accumulator::	db
 
 SECTION "Player", ROM0
@@ -112,7 +113,7 @@ check_jump:
 
 	; Jump
 	ld a, JUMP_STRENGHT
-	ld [w_player_velocity_y], a
+	ld [w_player_up_speed], a
 
 	; Mark player as jumping
 	ld a, 1
@@ -123,25 +124,49 @@ check_jump:
 apply_gravity:
 	ld a, [w_player_jumping]
     cp 0
-    jp z, .not_jumping
+    jp z, .done
 
-	; If jumping, increase Y velocity by gravity
+	; Is the player going up?
+	ld a, [w_player_up_speed]
+	cp 0
+	jp z, .falling
+
+	; Decrease jump strenght until 0
+	ld a, [w_player_up_speed]
+	add MAX_UP_VELOCITY
+	ld [w_player_up_speed], a
+
+	; Make player go up
+	ld a, MAX_UP_VELOCITY
+	ld [w_player_velocity_y], a
+
+	jr .done
+	; jr .update_accumulator
+
+.falling
+	; Check if reached max accumulator
 	ld a, [w_gravity_accumulator]
 	add GRAVITY_ACCU
 	cp GRAVITY_ACCU_MAX
 	jr c, .update_accumulator
 
-	; Reset accumulator and apply gravity
-    xor a
-    ld [w_gravity_accumulator], a
-    ld a, [w_player_velocity_y]
-    add GRAVITY ; Apply 1 pixel of gravity every two frames
-    ld [w_player_velocity_y], a
+	; Reset accumulator
+	xor a
+	ld [w_gravity_accumulator], a
+
+	; Check that max velocity hasn't been reached yet
+	ld a, [w_player_velocity_y]
+	cp MAX_DOWN_VELOCITY
+	jr z, .done
+	; Apply gravity
+	add GRAVITY
+	ld [w_player_velocity_y], a
+	ld [w_player_velocity_y], a
 
 .update_accumulator:
     ld [w_gravity_accumulator], a
 
-.not_jumping:
+.done:
     ret
 
 update_position:
