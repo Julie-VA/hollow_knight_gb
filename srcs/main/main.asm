@@ -36,7 +36,7 @@ entry_point:
 	ld [rLCDC], a
 
 	; Turn on LCD
-	ld a, LCDCF_ON  | LCDCF_BGON | LCDCF_OBJON | LCDCF_WINON | LCDCF_WIN9C00
+	ld a, LCDCF_ON  | LCDCF_BGON | LCDCF_OBJON
 	ld [rLCDC], a
 
 	; initialize display registers
@@ -53,12 +53,6 @@ next_game_state::
 	; Turn off LCD
 	xor a
 	ld [rLCDC], a
-
-	; Set all window values to 0
-	; ld [rSCX], a
-    ; ld [rSCY], a
-    ; ld [rWX], a
-    ; ld [rWY], a
 
 	call disable_interrupts
 

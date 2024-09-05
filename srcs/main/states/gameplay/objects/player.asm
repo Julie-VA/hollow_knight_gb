@@ -3,8 +3,11 @@ INCLUDE "srcs/main/utils/constants.inc"
 
 SECTION "PlayerVariables", WRAM0
 
-w_player_position_x:: db
-w_player_position_y:: db
+w_player_position_x::	db
+w_player_position_y::	db
+w_player_velocity_y::	db
+w_player_jumping::		db
+w_gravity_accumulator::	db
 
 SECTION "Player", ROM0
 
@@ -14,6 +17,9 @@ knight_tile_data_end:
 initialize_player::
 	xor a
 	ld [w_frame_counter], a
+	ld [w_gravity_accumulator], a
+	ld [w_player_jumping], a
+	ld [w_player_velocity_y], a
 
 	ld a, 16
     ld [w_player_position_x], a
@@ -52,7 +58,19 @@ initialize_player::
 
 update_player::
 
+; update_player_finish_jump:
+; 	ld a, [w_player_jumping]
+; 	cp 1
+; 	jp z, update_player_handle_input
+
+; 	call apply_gravity
+; 	call update_position
+
 update_player_handle_input:
+	ld a, [w_cur_keys]
+	and PADF_UP
+	call nz, check_jump
+
     ld a, [w_cur_keys]
     and PADF_LEFT
     call nz, move_left
@@ -66,7 +84,87 @@ update_player_handle_input:
     cp 0
 	call z, no_input
 
+	call apply_gravity
+	call update_position
+	ld a, [w_player_position_y]
+	ld [_OAMRAM], a
+	add a, 8
+	ld [_OAMRAM + 4], a
+
 	ret
+
+move_up:
+	call check_jump
+	call apply_gravity
+	call update_position
+	; Move knight top and knight bottom up
+	ld a, [w_player_position_y]
+	ld [_OAMRAM], a
+	add a, 8
+	ld [_OAMRAM + 4], a
+	ret
+
+check_jump:
+	; Check if player is already jumping
+	ld a, [w_player_jumping]
+	cp 0
+	jr nz, .no_jump
+
+	; Jump
+	ld a, JUMP_STRENGHT
+	ld [w_player_velocity_y], a
+
+	; Mark player as jumping
+	ld a, 1
+	ld [w_player_jumping], a
+.no_jump
+	ret
+
+apply_gravity:
+	ld a, [w_player_jumping]
+    cp 0
+    jp z, .not_jumping
+
+	; If jumping, increase Y velocity by gravity
+	ld a, [w_gravity_accumulator]
+	add GRAVITY_ACCU
+	cp GRAVITY_ACCU_MAX
+	jr c, .update_accumulator
+
+	; Reset accumulator and apply gravity
+    xor a
+    ld [w_gravity_accumulator], a
+    ld a, [w_player_velocity_y]
+    add GRAVITY ; Apply 1 pixel of gravity every two frames
+    ld [w_player_velocity_y], a
+
+.update_accumulator:
+    ld [w_gravity_accumulator], a
+
+.not_jumping:
+    ret
+
+update_position:
+	; Update Y position based on Y velocity
+    ld a, [w_player_position_y]
+	ld hl, w_player_velocity_y
+    add a, [hl]
+    ld [w_player_position_y], a
+
+	; Check if player is on the ground
+    cp 144 ; Assuming 144 is the ground level (adjust as needed)
+    jp c, .not_on_ground
+
+	ld a, 144
+	ld [w_player_position_y], a
+
+	xor a
+    ld [w_player_velocity_y], a
+	ld [w_gravity_accumulator], a
+	ld [w_player_jumping], a
+	
+.not_on_ground:
+    ret
 
 move_left:
 	; Flip knight_top
@@ -107,7 +205,7 @@ no_input:
 	ret
 
 update_player_horizontally:
-	; Move knight top and knight bottow 1 pixel to the left
+	; Move knight top and knight bottom 1 pixel to the left
 	ld [_OAMRAM + 1], a
 	ld [_OAMRAM + 5], a
 

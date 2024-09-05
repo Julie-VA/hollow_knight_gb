@@ -1,8 +1,5 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 
-DEF GRAVITY			EQU 1
-DEF JUMP_STRENGHT	EQU -10
-
 SECTION "VBlankVariables", WRAM0
 
 w_vblank_count:: db 
