@@ -59,18 +59,14 @@ initialize_player::
 
 update_player::
 
-; update_player_finish_jump:
-; 	ld a, [w_player_jumping]
-; 	cp 1
-; 	jp z, update_player_handle_input
-
-; 	call apply_gravity
-; 	call update_position
-
 update_player_handle_input:
 	ld a, [w_cur_keys]
 	and PADF_UP
 	call nz, check_jump
+
+	call check_up_press
+	cp a, 0 ; If a = 0: up was not pressed, if it was, a = 1
+	call nz, cut_jump
 
     ld a, [w_cur_keys]
     and PADF_LEFT
@@ -94,6 +90,22 @@ update_player_handle_input:
 
 	ret
 
+check_up_press:
+	ld a, [w_last_keys] ; Load the previous frame's key state
+    and PADF_UP
+    jr z, .no_up ; If up wasn't pressed in the last frame, skip
+
+    ld a, [w_cur_keys] ; Load the current frame's key state
+    and PADF_UP
+    jr nz, .no_up ; If up is still pressed, skip
+
+	; "return" 1 if up was pressed, 0 if it wasn't
+    ld a, 1
+	ret
+.no_up:
+	ld a, 0
+    ret
+
 move_up:
 	call check_jump
 	call apply_gravity
@@ -103,6 +115,18 @@ move_up:
 	ld [_OAMRAM], a
 	add a, 8
 	ld [_OAMRAM + 4], a
+	ret
+
+cut_jump:
+	; Check if player is already jumping
+	ld a, [w_player_jumping]
+	cp 0
+	jr z, .done
+
+	; Player is jumping, cancel upwards momentum
+	xor a
+	ld [w_player_up_speed], a
+.done
 	ret
 
 check_jump:
@@ -124,12 +148,12 @@ check_jump:
 apply_gravity:
 	ld a, [w_player_jumping]
     cp 0
-    jp z, .done
+    jr z, .done
 
 	; Is the player going up?
 	ld a, [w_player_up_speed]
 	cp 0
-	jp z, .falling
+	jr z, .falling
 
 	; Decrease jump strenght until 0
 	ld a, [w_player_up_speed]
@@ -141,7 +165,6 @@ apply_gravity:
 	ld [w_player_velocity_y], a
 
 	jr .done
-	; jr .update_accumulator
 
 .falling
 	; Check if reached max accumulator
@@ -177,7 +200,7 @@ update_position:
     ld [w_player_position_y], a
 
 	; Check if player is on the ground
-    cp 144 ; Assuming 144 is the ground level (adjust as needed)
+    cp 144 ; Assuming 144 is the ground level
     jp c, .not_on_ground
 
 	ld a, 144
@@ -187,7 +210,6 @@ update_position:
     ld [w_player_velocity_y], a
 	ld [w_gravity_accumulator], a
 	ld [w_player_jumping], a
-	
 .not_on_ground:
     ret
 
