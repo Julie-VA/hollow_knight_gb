@@ -3,12 +3,14 @@ INCLUDE "srcs/main/utils/constants.inc"
 
 SECTION "PlayerVariables", WRAM0
 
-w_player_position_x::	db
-w_player_position_y::	db
-w_player_velocity_y::	db
-w_player_jumping::		db
-w_player_up_speed::		db
-w_gravity_accumulator::	db
+w_player_position_x::		db
+w_player_position_y::		db
+
+w_player_jumping::			db
+w_player_velocity::			db
+w_player_jump_strenght::	db
+w_player_gravity_accu::		db ; The accumulator is used to travel by GRAVITY every GRAVITY_ACCU_MAX frames
+w_player_jump_tracker::		db ; Used to start the falling animation a bit later
 
 SECTION "Player", ROM0
 
@@ -18,9 +20,10 @@ knight_tile_data_end:
 initialize_player::
 	xor a
 	ld [w_frame_counter], a
-	ld [w_gravity_accumulator], a
+	ld [w_player_gravity_accu], a
 	ld [w_player_jumping], a
-	ld [w_player_velocity_y], a
+	ld [w_player_velocity], a
+	ld [w_player_jump_tracker], a
 
 	ld a, 16
     ld [w_player_position_x], a
@@ -57,6 +60,7 @@ initialize_player::
 
 	ret
 
+
 update_player::
 
 update_player_handle_input:
@@ -64,9 +68,7 @@ update_player_handle_input:
 	and PADF_UP
 	call nz, check_jump
 
-	call check_up_press
-	cp a, 0 ; If a = 0: up was not pressed, if it was, a = 1
-	call nz, cut_jump
+	call cut_jump_check_up_press
 
     ld a, [w_cur_keys]
     and PADF_LEFT
@@ -78,19 +80,18 @@ update_player_handle_input:
 
 	ld a, [w_cur_keys]
 	and (PADF_LEFT | PADF_RIGHT) ; Mask out left and right buttons
-    cp 0
+    or 0
 	call z, no_input
 
 	call apply_gravity
 	call update_position
-	ld a, [w_player_position_y]
-	ld [_OAMRAM], a
-	add a, 8
-	ld [_OAMRAM + 4], a
+
+	call draw_player
 
 	ret
 
-check_up_press:
+
+cut_jump_check_up_press:
 	ld a, [w_last_keys] ; Load the previous frame's key state
     and PADF_UP
     jr z, .no_up ; If up wasn't pressed in the last frame, skip
@@ -99,103 +100,109 @@ check_up_press:
     and PADF_UP
     jr nz, .no_up ; If up is still pressed, skip
 
-	; "return" 1 if up was pressed, 0 if it wasn't
-    ld a, 1
-	ret
+	call cut_jump
+
 .no_up:
-	ld a, 0
     ret
+
+
+cut_jump:
+	; Check if player is already jumping
+	ld a, [w_player_jumping]
+	or 0
+	jr z, .done
+
+	; Player is jumping, cancel upwards momentum
+	xor a
+	ld [w_player_jump_strenght], a
+
+.done
+	ret
+
 
 move_up:
 	call check_jump
 	call apply_gravity
 	call update_position
-	; Move knight top and knight bottom up
-	ld a, [w_player_position_y]
-	ld [_OAMRAM], a
-	add a, 8
-	ld [_OAMRAM + 4], a
+
 	ret
 
-cut_jump:
-	; Check if player is already jumping
-	ld a, [w_player_jumping]
-	cp 0
-	jr z, .done
-
-	; Player is jumping, cancel upwards momentum
-	xor a
-	ld [w_player_up_speed], a
-.done
-	ret
 
 check_jump:
 	; Check if player is already jumping
 	ld a, [w_player_jumping]
-	cp 0
+	or 0
 	jr nz, .no_jump
 
 	; Jump
 	ld a, JUMP_STRENGHT
-	ld [w_player_up_speed], a
+	ld [w_player_jump_strenght], a
 
 	; Mark player as jumping
 	ld a, 1
 	ld [w_player_jumping], a
+
 .no_jump
 	ret
 
+
 apply_gravity:
 	ld a, [w_player_jumping]
-    cp 0
+    or 0
     jr z, .done
 
 	; Is the player going up?
-	ld a, [w_player_up_speed]
-	cp 0
-	jr z, .falling
+	ld a, [w_player_jump_strenght]
+	or a
+	jr z, .falling ; If w_player_jump_strenght < 1, player is falling
 
-	; Decrease jump strenght until 0
-	ld a, [w_player_up_speed]
+	; Decrease jump strenght
+	ld a, [w_player_jump_strenght]
 	add MAX_UP_VELOCITY
-	ld [w_player_up_speed], a
+	ld [w_player_jump_strenght], a
 
 	; Make player go up
 	ld a, MAX_UP_VELOCITY
-	ld [w_player_velocity_y], a
+	ld [w_player_velocity], a
 
 	jr .done
 
 .falling
 	; Check if reached max accumulator
-	ld a, [w_gravity_accumulator]
+	ld a, [w_player_gravity_accu]
 	add GRAVITY_ACCU
 	cp GRAVITY_ACCU_MAX
 	jr c, .update_accumulator
 
 	; Reset accumulator
 	xor a
-	ld [w_gravity_accumulator], a
+	ld [w_player_gravity_accu], a
+
+	; Keep track of where we are in the jump for animation
+	ld a, [w_player_jump_tracker]
+	inc a
+	ld [w_player_jump_tracker], a
 
 	; Check that max velocity hasn't been reached yet
-	ld a, [w_player_velocity_y]
+	ld a, [w_player_velocity]
 	cp MAX_DOWN_VELOCITY
 	jr z, .done
 	; Apply gravity
 	add GRAVITY
-	ld [w_player_velocity_y], a
-	ld [w_player_velocity_y], a
+	ld [w_player_velocity], a
+
 
 .update_accumulator:
-    ld [w_gravity_accumulator], a
+    ld [w_player_gravity_accu], a
 
 .done:
     ret
 
+
 update_position:
 	; Update Y position based on Y velocity
     ld a, [w_player_position_y]
-	ld hl, w_player_velocity_y
+	ld hl, w_player_velocity
     add a, [hl]
     ld [w_player_position_y], a
 
@@ -207,11 +214,14 @@ update_position:
 	ld [w_player_position_y], a
 
 	xor a
-    ld [w_player_velocity_y], a
-	ld [w_gravity_accumulator], a
+    ld [w_player_velocity], a
+	ld [w_player_gravity_accu], a
 	ld [w_player_jumping], a
+	ld [w_player_jump_tracker], a
+
 .not_on_ground:
     ret
+
 
 move_left:
 	; Flip knight_top
@@ -223,11 +233,12 @@ move_left:
     ; Decrease the player's x position
     ld a, [w_player_position_x]
     sub PLAYER_MOVE_SPEED
-	; dec a
     ld [w_player_position_x], a
 
-	call update_player_horizontally
+	call animate_walking
+
     ret
+
 
 move_right:
 	; Flip knight_top
@@ -239,11 +250,12 @@ move_right:
     ; Increase the player's x position
     ld a, [w_player_position_x]
     add PLAYER_MOVE_SPEED
-	; inc a
     ld [w_player_position_x], a
 
-	call update_player_horizontally
+	call animate_walking
+
     ret
+
 
 no_input: 
 	; Go back to idle
@@ -251,13 +263,10 @@ no_input:
 	ld [$FE06], a
 	ret
 
-update_player_horizontally:
-	; Move knight top and knight bottom 1 pixel to the left
-	ld [_OAMRAM + 1], a
-	ld [_OAMRAM + 5], a
 
+animate_walking:
 	; Check if current frame is idle, if yes jump right to update_frame
-	ld a, [$FE06] ; $FE06 = 2nd OAMRAM spot
+	ld a, [$FE06] ; $FE06 = 2nd OAMRAM spot's 
 	cp a, 1
 	jr z, .update_frame
 	; Wait 10 frames before updating the walking animation
@@ -274,10 +283,57 @@ update_player_horizontally:
 	cp a, 4
 	jr nz, .update_sprite_index ; If still in range, set frame 1 or 2 of anim
 	ld a, 2 ; Else, we're past the last index so set it back to first frame of anim
+
 .update_sprite_index
 	ld [$FE06], a
 
 	; Reset the frame counter back to 0
 	xor a
 	ld [w_frame_counter], a
+	ret
+
+
+draw_player:
+	; Update Y position in OAM
+	ld a, [w_player_position_y]
+	ld [_OAMRAM], a
+	add a, 8
+	ld [_OAMRAM + 4], a
+
+	; Update X position in OAM
+	ld a, [w_player_position_x]
+	ld [_OAMRAM + 1], a
+	ld [_OAMRAM + 5], a
+
+	; Check if player is jumping
+	ld a, [w_player_jumping]
+	or a
+	jr nz, .animate_jump
+
+	ret
+
+.animate_jump
+	; Check if player is going up
+	ld a, [w_player_jump_tracker]
+	cp a, 2
+	jr nc, .animate_jump_falling
+
+.animate_jump_rising
+	; Check if left or right were pressed in the last or current frame, to make sure we use the correct animation frame
+	ld a, [w_last_keys]
+	and (PADF_LEFT | PADF_RIGHT)
+	ld b, a
+	ld a, [w_cur_keys]
+	and (PADF_LEFT | PADF_RIGHT)
+	or a, b
+	jr nz, .animate_jump_falling ; The falling animation has the cape up which we also want when rising and moving
+
+.animate_jump_rising_idle
+	ld a, 1
+	ld [$FE06], a
+	ret
+
+.animate_jump_falling
+	ld a, 3
+	ld [$FE06], a
 	ret
