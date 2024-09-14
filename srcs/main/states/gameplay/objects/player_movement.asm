@@ -23,8 +23,6 @@ move_left::
 	sub PLAYER_MOVE_SPEED
 	ld [w_player_position_x], a
 
-	call animate_walking
-
 	ret
 
 
@@ -39,8 +37,6 @@ move_right::
 	ld a, [w_player_position_x]
 	add PLAYER_MOVE_SPEED
 	ld [w_player_position_x], a
-
-	call animate_walking
 
 	ret
 
