@@ -1,3 +1,3 @@
 xor a: sets a to 0
 
-or a: sets Z flag if a == 0, used as a faster cp a, 0 (4 vs 8 cycles)
+or a: sets Z flag if a == 0, used as a faster cp a, 0 (1 vs 2 cycles)

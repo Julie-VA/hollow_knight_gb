@@ -1,10 +1,6 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/text-macros.inc"
 
-SECTION "Counter", WRAM0
-
-w_frame_counter:: db
-
 SECTION "GameplayState", ROM0
 
 init_gameplay_state::

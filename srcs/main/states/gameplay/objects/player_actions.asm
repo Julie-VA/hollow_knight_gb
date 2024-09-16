@@ -3,10 +3,13 @@ INCLUDE "srcs/main/utils/constants.inc"
 
 SECTION "PlayerMovement", ROM0
 
-move_up::
-	call check_jump
-	call apply_gravity
-	call update_position
+attack::
+	ld a, [w_player_attacking]
+	or 0
+	ret nz
+
+	ld a, 1
+	ld [w_player_attacking], a
 
 	ret
 
@@ -14,9 +17,9 @@ move_up::
 move_left::
 	; Flip knight_top
 	ld a, %00100000
-	ld [_OAMRAM + 3], a
+	ld [$FE00 + 3], a
 	; Flip knight_bottom
-	ld [_OAMRAM + 7], a
+	ld [$FE04 + 3], a
 
 	; Decrease the player's x position
 	ld a, [w_player_position_x]
@@ -29,14 +32,22 @@ move_left::
 move_right::
 	; Flip knight_top
 	xor a
-	ld [_OAMRAM + 3], a
+	ld [$FE00 + 3], a
 	; Flip knight_bottom
-	ld [_OAMRAM + 7], a
+	ld [$FE04 + 3], a
 
 	; Increase the player's x position
 	ld a, [w_player_position_x]
 	add PLAYER_MOVE_SPEED
 	ld [w_player_position_x], a
+
+	ret
+
+
+move_up::
+	call check_jump
+	call apply_gravity
+	call update_position
 
 	ret
 

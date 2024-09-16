@@ -41,7 +41,7 @@ draw_title_screen::
 update_title_screen_state::
     ; Save the passed value into the variable: m_wait_key
     ; The wait_for_key_function always checks against this vriable
-    ld a, PADF_A
+    ld a, PADF_START
     ld [m_wait_key], a
 
     call wait_for_key_function
