@@ -262,11 +262,11 @@ draw_attack:
 	ld a, [w_frame_counter_attack]
 
 	; Check if we're animating the first part of the attack
-	cp a, 6
+	cp a, ATTACK_TIME
 	jp c, animate_attack
 
 	; Check if we're animating the attack's after effect
-	cp a, 12
+	cp a, AFTER_EFFECT_TIME
 	jp c, animate_after_effect
 
 	; If both checks failed, it's the end so we can end the attack

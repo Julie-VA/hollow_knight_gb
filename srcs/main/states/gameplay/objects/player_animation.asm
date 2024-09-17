@@ -52,6 +52,13 @@ animate_attack::
 
 ; This diplays and updates the position of the vertical slash (up, down)
 .animate_attack_y_update_pos
+	; Check if the attack is x flipped to place the sprites correctly
+	ld a, [$FE20 + 3]
+	and %00100000 ; Only the x flip bit is useful for this
+	cp a, %00100000
+	jr z, .animate_attack_y_update_pos_flipped
+
+.animate_attack_y_update_pos_not_flipped
 	; Update X position of attack animation
 	ld a, [w_player_position_x]
 	sub a, 4
@@ -60,7 +67,19 @@ animate_attack::
 	add a, 8
 	ld [$FE24 + 1], a ; top right
 	ld [$FE2C + 1], a ; bottom right
+	jr .animate_attack_y_update_pos_check
 
+.animate_attack_y_update_pos_flipped
+	; Update X position of attack animation
+	ld a, [w_player_position_x]
+	sub a, 4
+	ld [$FE24 + 1], a ; top right
+	ld [$FE2C + 1], a ; bottom right
+	add a, 8
+	ld [$FE20 + 1], a ; top left
+	ld [$FE28 + 1], a ; bottom left
+
+.animate_attack_y_update_pos_check
 	; Check if we're attacking up or down to position it above or below the player
 	ld a, [w_player_attacking]
 	cp a, 3
@@ -129,17 +148,23 @@ animate_after_effect::
 	inc a
 	ld [w_frame_counter_attack], a
 
+	ld a, [w_player_attacking]
+	cp a, 3
+	jr nc, .animate_after_effect_y_update_pos ; If w_player_attacking = 3 or 4 (up or down), display the vertical after effect
+
+; This diplays and updates the position of the horizontal after effect (left, right)
+.animate_after_effect_x_update_pos
 	; Update Y position of after effect animation
 	ld a, [w_player_position_y]
 	ld [$FE18], a ; left
 	ld [$FE1C], a ; right
 
-	; Check if the after effect is flipped, to position it on the right side of the player
-	ld a, [$FE18 + 3]
-	or a
-	jr z, .animate_after_effect_update_pos_right
+	; Check if we're attacking left or right to position it left or right of the player
+	ld a, [w_player_attacking]
+	cp a, 2
+	jr nz, .animate_after_effect_x_update_pos_right
 
-.animate_after_effect_update_pos_left
+.animate_after_effect_x_update_pos_left
 	; Update X position of attack animation
 	ld a, [w_player_position_x]
 	sub a, 8
@@ -148,28 +173,88 @@ animate_after_effect::
 	ld [$FE1C + 1], a ; right
 	jp draw_attack.done
 
-.animate_after_effect_update_pos_right
+.animate_after_effect_x_update_pos_right
 	; Update X position of attack animation
 	ld a, [w_player_position_x]
 	add a, 8
 	ld [$FE18 + 1], a ; left
 	add a, 8
 	ld [$FE1C + 1], a ; right
+	jp draw_attack.done
+
+; This diplays and updates the position of the vertical after effect (up, down)
+.animate_after_effect_y_update_pos
+	; Check if the after effect is x flipped to place the sprites correctly
+	ld a, [$FE30 + 3]
+	and %00100000 ; Only the x flip bit is useful for this
+	cp a, %00100000
+	jr z, .animate_after_effect_y_update_pos_flipped
+
+.animate_after_effect_y_update_pos_not_flipped
+	; Update Y position of after effect animation
+	ld a, [w_player_position_x]
+	sub a, 4
+	ld [$FE30 + 1], a ; bottom
+	ld [$FE34 + 1], a ; top
+	jr .animate_after_effect_y_update_pos_check
+
+.animate_after_effect_y_update_pos_flipped
+	; Update Y position of after effect animation
+	ld a, [w_player_position_x]
+	add a, 4
+	ld [$FE30 + 1], a ; bottom
+	ld [$FE34 + 1], a ; top
+
+.animate_after_effect_y_update_pos_check
+	; Check if we're attacking up or down to position it above or below the player
+	ld a, [w_player_attacking]
+	cp a, 3
+	jr nz, .animate_after_effect_y_update_pos_down
+
+.animate_after_effect_y_update_pos_up
+	; Update Y position of after effect animation
+	ld a, [w_player_position_y]
+	sub a, 8
+	ld [$FE34], a ; top
+	sub a, 8
+	ld [$FE30], a ; bottom
+	jp draw_attack.done
+
+.animate_after_effect_y_update_pos_down
+	; Update Y position of after effect animation
+	ld a, [w_player_position_y]
+	add a, 16
+	ld [$FE34], a ; top
+	add a, 8
+	ld [$FE30], a ; bottom
 	jp draw_attack.done
 
 
 animate_attack_end::
+	; Check whether to mask out vertical or horizontal slash sprites
+	ld a, [w_player_attacking]
+	cp a, 3
+	jr nc, .animate_attack_end_mask_y
+
+.animate_attack_end_mask_x
+	; Mask out horizontal after effect sprites
 	xor a
-
-	; Reset attack vars
-	ld [w_frame_counter_attack], a
-	ld [w_player_attacking], a
-
-	; Mask out after effect sprites
 	ld [$FE18], a ; left
 	ld [$FE1C], a ; right
 	ld [$FE18 + 1], a ; left
 	ld [$FE1C + 1], a ; right
+
+.animate_attack_end_mask_y
+	; Mask out vertical after effect sprites
+	xor a
+	ld [$FE30], a ; left
+	ld [$FE34], a ; right
+	ld [$FE30 + 1], a ; left
+	ld [$FE34 + 1], a ; right
+
+	; Reset attack vars
+	ld [w_frame_counter_attack], a
+	ld [w_player_attacking], a
 
 	jp draw_attack.done
 
