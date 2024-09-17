@@ -12,7 +12,7 @@ w_player_jump_strenght::	db
 w_player_gravity_accu::		db ; The accumulator is used to travel by GRAVITY every GRAVITY_ACCU_MAX frames
 w_player_jump_tracker::		db ; Used to start the falling animation a bit later
 
-w_player_attacking::		db
+w_player_attacking::		db ; 0 = not attacking, 1 = attacking right, 2 = left, 3 = up, 4 = down
 
 SECTION "Counters", WRAM0
 
@@ -62,68 +62,128 @@ initialize_player::
 	ld [hli], a
 	ld a, [w_player_position_x]
 	ld [hli], a
-	ld a, 1
+	ld a, $01
 	ld [hli], a
 	xor a
 	ld [hl], a
 
 	; Set slashes out of screen for later use
-	; Set slash_1
+	; Set slash_1_x
 	ld hl, _OAMRAM + 8
 	xor a
 	ld [hli], a
 	ld [hli], a
-	ld a, 4
+	ld a, $04
 	ld [hli], a
 	xor a
 	ld [hl], a
 
-	; Set slash_2
+	; Set slash_2_x
 	ld hl, _OAMRAM + 12
 	xor a
 	ld [hli], a
 	ld [hli], a
-	ld a, 5
+	ld a, $05
 	ld [hli], a
 	xor a
 	ld [hl], a
 
-	; Set slash_3
+	; Set slash_3_x
 	ld hl, _OAMRAM + 16
 	xor a
 	ld [hli], a
 	ld [hli], a
-	ld a, 6
+	ld a, $06
 	ld [hli], a
 	xor a
 	ld [hl], a
 
-	; Set slash_4
+	; Set slash_4_x
 	ld hl, _OAMRAM + 20
 	xor a
 	ld [hli], a
 	ld [hli], a
-	ld a, 7
+	ld a, $07
 	ld [hli], a
 	xor a
 	ld [hl], a
 
-	; Set slash_after_effect_1
+	; Set slash_after_effect_1_x
 	ld hl, _OAMRAM + 24
 	xor a
 	ld [hli], a
 	ld [hli], a
-	ld a, 8
+	ld a, $08
 	ld [hli], a
 	xor a
 	ld [hl], a
 
-	; Set slash_after_effect_2
+	; Set slash_after_effect_2_x
 	ld hl, _OAMRAM + 28
 	xor a
 	ld [hli], a
 	ld [hli], a
-	ld a, 9
+	ld a, $09
+	ld [hli], a
+	xor a
+	ld [hl], a
+
+	; Set slash_1_y
+	ld hl, _OAMRAM + 32
+	xor a
+	ld [hli], a
+	ld [hli], a
+	ld a, $0A
+	ld [hli], a
+	xor a
+	ld [hl], a
+
+	; Set slash_2_y
+	ld hl, _OAMRAM + 36
+	xor a
+	ld [hli], a
+	ld [hli], a
+	ld a, $0B
+	ld [hli], a
+	xor a
+	ld [hl], a
+
+	; Set slash_3_y
+	ld hl, _OAMRAM + 40
+	xor a
+	ld [hli], a
+	ld [hli], a
+	ld a, $0C
+	ld [hli], a
+	xor a
+	ld [hl], a
+
+	; Set slash_4_y
+	ld hl, _OAMRAM + 44
+	xor a
+	ld [hli], a
+	ld [hli], a
+	ld a, $0D
+	ld [hli], a
+	xor a
+	ld [hl], a
+
+	; Set slash_after_effect_1_y
+	ld hl, _OAMRAM + 48
+	xor a
+	ld [hli], a
+	ld [hli], a
+	ld a, $0E
+	ld [hli], a
+	xor a
+	ld [hl], a
+
+	; Set slash_after_effect_2_y
+	ld hl, _OAMRAM + 52
+	xor a
+	ld [hli], a
+	ld [hli], a
+	ld a, $0F
 	ld [hli], a
 	xor a
 	ld [hl], a

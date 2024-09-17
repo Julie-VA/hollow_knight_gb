@@ -4,13 +4,125 @@ INCLUDE "srcs/main/utils/constants.inc"
 SECTION "PlayerMovement", ROM0
 
 attack::
+	; Ret if player is already attacking
 	ld a, [w_player_attacking]
-	or 0
+	or a
 	ret nz
 
+; Check if down is pressed, if it is, check if player is jumping, if they aren't set w_player_attacking to 3 (up), if they are set w_player_attacking to 4 (down)
+.attack_check_down
+	ld a, [w_cur_keys]
+	and PADF_DOWN
+	jr z, .attack_check_left
+	ld a, [w_player_jumping]
+	or a
+	jr nz, .attack_check_down_jumping
+	ld a, 3
+	ld [w_player_attacking], a
+	; Set no y flip
+	ld b, 0
+	jr .attack_set_attributes_y_slash
+	
+.attack_check_down_jumping
+	ld a, 4
+	ld [w_player_attacking], a
+	; Set y flip
+	ld b, %01000000
+	jr .attack_set_attributes_y_slash
+
+; Check if left is pressed, if it is set w_player_attacking to 2 (left)
+.attack_check_left
+	ld a, [w_cur_keys]
+	and PADF_LEFT
+	jr z, .attack_check_right
+	ld a, 2
+	ld [w_player_attacking], a
+	; Set x flip
+	ld a, %00100000
+	jr .attack_set_attributes_x_slash
+
+; Check if right is pressed, if it is set w_player_attacking to 1 (right)
+.attack_check_right
+	ld a, [w_cur_keys]
+	and PADF_RIGHT
+	jr z, .attack_check_up
 	ld a, 1
 	ld [w_player_attacking], a
+	; Set no x flip
+	xor a
+	jr .attack_set_attributes_x_slash
 
+; Check if up is pressed, if it is set w_player_attacking to 3 (up)
+.attack_check_up
+	ld a, [w_cur_keys]
+	and PADF_UP
+	jr z, .attack_no_dir
+	ld a, 3
+	ld [w_player_attacking], a
+	; Set no y flip
+	ld b, 0
+	jr .attack_set_attributes_y_slash
+
+; If no direction is pressed while attacking, set w_player_attacking to the direction the player is facing
+.attack_no_dir
+	; Check attributes of player head, to see if it's flipped
+	ld a, [$FE00 + 3]
+	or a
+	jr z, .attack_no_dir_flip_right
+.attack_no_dir_flip_left
+	; Set w_player_attacking to 2 (left)
+	ld a, 2
+	ld [w_player_attacking], a
+	; Set x flip
+	ld a, %00100000
+	jr .attack_set_attributes_x_slash
+.attack_no_dir_flip_right
+	; Set w_player_attacking to 1 (right)
+	ld a, 1
+	ld [w_player_attacking], a
+	; Set no x flip
+	xor a
+	jr .attack_set_attributes_x_slash
+
+; This is used to x flip the horizontal slashes (used in .attack_check_left, .attack_check_right and .attack_no_dir)
+.attack_set_attributes_x_slash
+	; Set attack and after effect attributes
+	; attack
+	ld [$FE08 + 3], a
+	ld [$FE0C + 3], a
+	ld [$FE10 + 3], a
+	ld [$FE14 + 3], a
+	; after effect
+	ld [$FE18 + 3], a
+	ld [$FE1C + 3], a
+	ret
+
+; This is used to x flip in the direction of the player and potentially y flip (with b) the vertical slashes (used in .attack_check_down and .attack_check_up)
+.attack_set_attributes_y_slash
+	; Check attributes of player head, to see if it's flipped
+	ld a, [$FE00 + 3]
+	or a
+	jr z, .attack_set_attributes_y_slash_flip_right
+.attack_set_attributes_y_slash_flip_left
+	; Set x flip
+	ld a, %00100000
+	jr .attack_set_attributes_y_slash_finish
+.attack_set_attributes_y_slash_flip_right
+	; Set no x flip
+	xor a
+.attack_set_attributes_y_slash_finish
+	; b contains the information on whether or not we need to y flip
+	or a, b
+
+	; Set attack and after effect attributes
+	; attack
+	ld [$FE20 + 3], a
+	ld [$FE24 + 3], a
+	ld [$FE28 + 3], a
+	ld [$FE2C + 3], a
+	; after effect
+	ld [$FE30 + 3], a
+	ld [$FE34 + 3], a
 	ret
 
 
@@ -62,29 +174,22 @@ no_direction::
 cut_jump_check_up_press::
 	ld a, [w_last_keys] ; Load the previous frame's key state
 	and PADF_UP
-	jr z, .no_up ; If up wasn't pressed in the last frame, skip
+	ret z ; If up wasn't pressed in the last frame, ret
 
 	ld a, [w_cur_keys] ; Load the current frame's key state
 	and PADF_UP
-	jr nz, .no_up ; If up is still pressed, skip
+	ret nz ; If up is still pressed, ret
 
-	call cut_jump
-
-.no_up:
-	ret
-
-
-cut_jump::
+.cut_jump:
 	; Check if player is already jumping
 	ld a, [w_player_jumping]
 	or 0
-	jr z, .done
+	ret z
 
-	; Player is jumping, cancel upwards momentum
+	; Player is jumping, stop upwards momentum
 	xor a
 	ld [w_player_jump_strenght], a
 
-.done
 	ret
 
 

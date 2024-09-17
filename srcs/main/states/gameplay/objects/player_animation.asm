@@ -4,46 +4,17 @@ INCLUDE "srcs/main/utils/constants.inc"
 SECTION "PlayerAnimations", ROM0
 
 animate_attack::
-	; Check if it's the 1st frame of attack
-	or a
-	jr nz, .animate_attack_update_pos
-
-	; Check attributes of player head, to see if it's flipped
-	ld a, [$FE03]
-	or a
-	jr z, .animate_attack_flip_right
-
-.animate_attack_flip_left
-	; Flip attack and after effect to the left
-	ld a, %00100000
-	; attack
-	ld [$FE08 + 3], a
-	ld [$FE0C + 3], a
-	ld [$FE10 + 3], a
-	ld [$FE14 + 3], a
-	; after effect
-	ld [$FE18 + 3], a
-	ld [$FE1C + 3], a
-	jr .animate_attack_update_pos
-
-.animate_attack_flip_right
-	; Flip attack and after effect to the right
-	xor a
-	; attack
-	ld [$FE08 + 3], a
-	ld [$FE0C + 3], a
-	ld [$FE10 + 3], a
-	ld [$FE14 + 3], a
-	; after effect
-	ld [$FE18 + 3], a
-	ld [$FE1C + 3], a
-
-.animate_attack_update_pos
 	; Increase w_frame_counter_attack
 	ld a, [w_frame_counter_attack]
 	inc a
 	ld [w_frame_counter_attack], a
 
+	ld a, [w_player_attacking]
+	cp a, 3
+	jr nc, .animate_attack_y_update_pos ; If w_player_attacking = 3 or 4 (up or down), display the vertical slash
+
+; This diplays and updates the position of the horizontal slash (left, right)
+.animate_attack_x_update_pos
 	; Update Y position of attack animation
 	ld a, [w_player_position_y]
 	ld [$FE08], a ; top left
@@ -52,12 +23,12 @@ animate_attack::
 	ld [$FE10], a ; bottom left
 	ld [$FE14], a ; bottom right
 
-	; Check if the attack is flipped, to position it on the right side of the player
-	ld a, [$FE08 + 3]
-	or a
-	jr z, .animate_attack_update_pos_right
+	; Check if we're attacking left or right to position it left or right of the player
+	ld a, [w_player_attacking]
+	cp a, 2
+	jr nz, .animate_attack_x_update_pos_right
 
-.animate_attack_update_pos_left
+.animate_attack_x_update_pos_left
 	; Update X position of attack animation
 	ld a, [w_player_position_x]
 	sub a, 8
@@ -68,7 +39,7 @@ animate_attack::
 	ld [$FE14 + 1], a ; bottom right
 	jp draw_attack.done
 
-.animate_attack_update_pos_right
+.animate_attack_x_update_pos_right
 	; Update X position of attack animation
 	ld a, [w_player_position_x]
 	add a, 8
@@ -77,6 +48,44 @@ animate_attack::
 	add a, 8
 	ld [$FE0C + 1], a ; top right
 	ld [$FE14 + 1], a ; bottom right
+	jp draw_attack.done
+
+; This diplays and updates the position of the vertical slash (up, down)
+.animate_attack_y_update_pos
+	; Update X position of attack animation
+	ld a, [w_player_position_x]
+	sub a, 4
+	ld [$FE20 + 1], a ; top left
+	ld [$FE28 + 1], a ; bottom left
+	add a, 8
+	ld [$FE24 + 1], a ; top right
+	ld [$FE2C + 1], a ; bottom right
+
+	; Check if we're attacking up or down to position it above or below the player
+	ld a, [w_player_attacking]
+	cp a, 3
+	jr nz, .animate_attack_y_update_pos_down
+
+.animate_attack_y_update_pos_up
+	; Update Y position of attack animation
+	ld a, [w_player_position_y]
+	sub a, 8
+	ld [$FE28], a ; bottom left
+	ld [$FE2C], a ; bottom right
+	sub a, 8
+	ld [$FE20], a ; top left
+	ld [$FE24], a ; top right
+	jp draw_attack.done
+
+.animate_attack_y_update_pos_down
+	; Update Y position of attack animation
+	ld a, [w_player_position_y]
+	add a, 16
+	ld [$FE28], a ; bottom left
+	ld [$FE2C], a ; bottom right
+	add a, 8
+	ld [$FE20], a ; top left
+	ld [$FE24], a ; top right
 	jp draw_attack.done
 
 
@@ -85,7 +94,13 @@ animate_after_effect::
 	cp a, 6
 	jr nz, .animate_after_effect_update_pos
 
-	; Mask out the attack sprites
+	; Check whether to mask out vertical or horizontal slash sprites
+	ld a, [w_player_attacking]
+	cp a, 3
+	jr nc, .animate_after_effect_mask_y
+
+.animate_after_effect_mask_x
+	; Mask out the horizontal attack sprites
 	xor a
 	ld [$FE08], a ; top left
 	ld [$FE0C], a ; top right
@@ -95,6 +110,18 @@ animate_after_effect::
 	ld [$FE10 + 1], a ; bottom left
 	ld [$FE0C + 1], a ; top right
 	ld [$FE14 + 1], a ; bottom right
+
+.animate_after_effect_mask_y
+	; Mask out the vertical attack sprites
+	xor a
+	ld [$FE20], a ; top left
+	ld [$FE24], a ; top right
+	ld [$FE28], a ; bottom left
+	ld [$FE2C], a ; bottom right
+	ld [$FE20 + 1], a ; top left
+	ld [$FE24 + 1], a ; bottom left
+	ld [$FE28 + 1], a ; top right
+	ld [$FE2C + 1], a ; bottom right
 
 .animate_after_effect_update_pos
 	; Increase w_frame_counter_attack
