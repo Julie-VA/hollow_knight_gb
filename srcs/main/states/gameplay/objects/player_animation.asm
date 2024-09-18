@@ -4,11 +4,6 @@ INCLUDE "srcs/main/utils/constants.inc"
 SECTION "PlayerAnimations", ROM0
 
 animate_attack::
-	; Increase w_frame_counter_attack
-	ld a, [w_frame_counter_attack]
-	inc a
-	ld [w_frame_counter_attack], a
-
 	ld a, [w_player_attacking]
 	cp a, 3
 	jr nc, .animate_attack_y_update_pos ; If w_player_attacking = 3 or 4 (up or down), display the vertical slash
@@ -143,11 +138,6 @@ animate_after_effect::
 	ld [$FE2C + 1], a ; bottom right
 
 .animate_after_effect_update_pos
-	; Increase w_frame_counter_attack
-	ld a, [w_frame_counter_attack]
-	inc a
-	ld [w_frame_counter_attack], a
-
 	ld a, [w_player_attacking]
 	cp a, 3
 	jr nc, .animate_after_effect_y_update_pos ; If w_player_attacking = 3 or 4 (up or down), display the vertical after effect
@@ -251,10 +241,6 @@ animate_attack_end::
 	ld [$FE34], a ; right
 	ld [$FE30 + 1], a ; left
 	ld [$FE34 + 1], a ; right
-
-	; Reset attack vars
-	ld [w_frame_counter_attack], a
-	ld [w_player_attacking], a
 
 	jp draw_attack.done
 

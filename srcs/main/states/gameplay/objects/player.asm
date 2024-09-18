@@ -260,7 +260,18 @@ draw_attack:
 	ret z
 
 	ld a, [w_frame_counter_attack]
+	cp a, AFTER_EFFECT_TIME + 1 ; Check if we're past the attack animation
+	jr c, .draw_attack_animate
+	cp a, ATTACK_COOLDOWN + 1 ; Check if we're past the cooldown
+	jr c, .done
 
+	; Reset attack vars
+	xor a
+	ld [w_frame_counter_attack], a
+	ld [w_player_attacking], a
+	ret
+
+.draw_attack_animate
 	; Check if we're animating the first part of the attack
 	cp a, ATTACK_TIME
 	jp c, animate_attack
@@ -273,4 +284,8 @@ draw_attack:
 	jp animate_attack_end
 
 .done::
+	; Increase w_frame_counter_attack
+	ld a, [w_frame_counter_attack]
+	inc a
+	ld [w_frame_counter_attack], a
 	ret
