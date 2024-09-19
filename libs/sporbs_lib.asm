@@ -206,7 +206,7 @@ RenderMetasprite::
   inc e
   ; Check for null end byte.
   ld a, [hl]
-  cp a, 128
+  cp 128
   jr nz, .loop
   ld a, e
   ldh [hOAMIndex], a

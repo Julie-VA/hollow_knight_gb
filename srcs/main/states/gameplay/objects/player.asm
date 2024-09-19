@@ -20,7 +20,6 @@ w_frame_counter_walk::		db
 w_frame_counter_attack::	db
 
 SECTION "Player", ROM0
-
 knight_tile_data: INCBIN "resources/sprites.2bpp"
 knight_tile_data_end:
 
@@ -46,26 +45,45 @@ initialize_player::
     call copy_de_into_memory_at_hl
 
 	; Set knight_top
-	ld hl, _OAMRAM
 	ld a, [w_player_position_y]
-	ld [hli], a
+	ld b, a
 	ld a, [w_player_position_x]
-	ld [hli], a
-	xor a
-	ld [hli], a
-	ld [hl], a
+	ld c, a
+	ld d, 0
+	ld e, 0
+	call RenderSimpleSprite
 
 	; Set knight_bottom
-	ld hl, _OAMRAM + 4
 	ld a, [w_player_position_y]
-	add a, 8
-	ld [hli], a
+	add 8
+	ld b, a
 	ld a, [w_player_position_x]
-	ld [hli], a
-	ld a, $01
-	ld [hli], a
-	xor a
-	ld [hl], a
+	ld c, a
+	ld d, $01
+	ld e, 0
+	call RenderSimpleSprite
+
+	; Set knight_top
+	; ld hl, _OAMRAM
+	; ld a, [w_player_position_y]
+	; ld [hli], a
+	; ld a, [w_player_position_x]
+	; ld [hli], a
+	; xor a
+	; ld [hli], a
+	; ld [hl], a
+
+	; Set knight_bottom
+	; ld hl, _OAMRAM + 4
+	; ld a, [w_player_position_y]
+	; add a, 8
+	; ld [hli], a
+	; ld a, [w_player_position_x]
+	; ld [hli], a
+	; ld a, $01
+	; ld [hli], a
+	; xor a
+	; ld [hl], a
 
 	; Set slashes out of screen for later use
 	; Set slash_1_x
@@ -260,9 +278,9 @@ draw_attack:
 	ret z
 
 	ld a, [w_frame_counter_attack]
-	cp a, AFTER_EFFECT_TIME + 1 ; Check if we're past the attack animation
+	cp AFTER_EFFECT_TIME + 1 ; Check if we're past the attack animation
 	jr c, .draw_attack_animate
-	cp a, ATTACK_COOLDOWN + 1 ; Check if we're past the cooldown
+	cp ATTACK_COOLDOWN + 1 ; Check if we're past the cooldown
 	jr c, .done
 
 	; Reset attack vars
@@ -273,11 +291,11 @@ draw_attack:
 
 .draw_attack_animate
 	; Check if we're animating the first part of the attack
-	cp a, ATTACK_TIME
+	cp ATTACK_TIME
 	jp c, animate_attack
 
 	; Check if we're animating the attack's after effect
-	cp a, AFTER_EFFECT_TIME
+	cp AFTER_EFFECT_TIME
 	jp c, animate_after_effect
 
 	; If both checks failed, it's the end so we can end the attack

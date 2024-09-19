@@ -2,7 +2,7 @@ INCLUDE "srcs/main/utils/hardware.inc"
 
 SECTION "VBlankVariables", WRAM0
 
-w_vblank_count:: db 
+w_vblank_count:: db
 
 SECTION "VBlank functions", ROM0
 
@@ -17,6 +17,7 @@ wait_not_vblank::
 	cp 144
 	jr nc, wait_not_vblank
 	ret
+
 
 SECTION "Background functions", ROM0
 
@@ -42,6 +43,7 @@ clear_background_tilemap::
 
 	ret
 
+
 clear_title_screen_tiles::
 	; Turn off LCD
 	xor a
@@ -64,13 +66,15 @@ clear_title_screen_tiles::
 
 	ret
 
- SECTION "Interrupts", ROM0
 
- disable_interrupts::
+SECTION "Interrupts", ROM0
+
+disable_interrupts::
 	xor a
 	ldh [rSTAT], a
 	di
 	ret
+
 
 SECTION "Memory functions", ROM0
 
@@ -87,6 +91,7 @@ copy_de_into_memory_at_hl::
 	jp nz, copy_de_into_memory_at_hl
 	ret
 
+
 ; @param de: Source
 ; @param hl: Destination
 ; @param bc: Length
@@ -101,6 +106,17 @@ copy_de_into_memory_at_hl_with_52_offset::
 	jp nz, copy_de_into_memory_at_hl_with_52_offset
 	ret
 
+; clear_oam::
+; 	ld hl, _OAMRAM
+; .clear
+; 	xor a
+; 	ld [hli], a
+; 	ld a, h
+; 	cp $FF ; OAMRAM ends at $FF00
+; 	jr nz, .clear
+; 	ret
+
+
 ; fill the screen with the tile at address in register b
 fill_screen:
 	ld hl, _SCRN0
@@ -109,15 +125,5 @@ fill_screen:
 	ld [hli], a
 	ld a, h
 	cp $9C ; screen ends at $9C00
-	jr nz, .clear
-	ret
-
-clear_oam::
-	ld hl, _OAMRAM
-.clear
-	xor a
-	ld [hli], a
-	ld a, h
-	cp $FF ; OAMRAM ends at $FF00
 	jr nz, .clear
 	ret

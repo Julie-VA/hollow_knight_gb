@@ -5,7 +5,7 @@ SECTION "PlayerAnimations", ROM0
 
 animate_attack::
 	ld a, [w_player_attacking]
-	cp a, 3
+	cp 3
 	jr nc, .animate_attack_y_update_pos ; If w_player_attacking = 3 or 4 (up or down), display the vertical slash
 
 ; This diplays and updates the position of the horizontal slash (left, right)
@@ -20,7 +20,7 @@ animate_attack::
 
 	; Check if we're attacking left or right to position it left or right of the player
 	ld a, [w_player_attacking]
-	cp a, 2
+	cp 2
 	jr nz, .animate_attack_x_update_pos_right
 
 .animate_attack_x_update_pos_left
@@ -50,7 +50,7 @@ animate_attack::
 	; Check if the attack is x flipped to place the sprites correctly
 	ld a, [$FE20 + 3]
 	and %00100000 ; Only the x flip bit is useful for this
-	cp a, %00100000
+	cp %00100000
 	jr z, .animate_attack_y_update_pos_flipped
 
 .animate_attack_y_update_pos_not_flipped
@@ -77,7 +77,7 @@ animate_attack::
 .animate_attack_y_update_pos_check
 	; Check if we're attacking up or down to position it above or below the player
 	ld a, [w_player_attacking]
-	cp a, 3
+	cp 3
 	jr nz, .animate_attack_y_update_pos_down
 
 .animate_attack_y_update_pos_up
@@ -105,12 +105,12 @@ animate_attack::
 
 animate_after_effect::
 	; Check if it's the 1st frame of after effect
-	cp a, 6
+	cp 6
 	jr nz, .animate_after_effect_update_pos
 
 	; Check whether to mask out vertical or horizontal slash sprites
 	ld a, [w_player_attacking]
-	cp a, 3
+	cp 3
 	jr nc, .animate_after_effect_mask_y
 
 .animate_after_effect_mask_x
@@ -139,7 +139,7 @@ animate_after_effect::
 
 .animate_after_effect_update_pos
 	ld a, [w_player_attacking]
-	cp a, 3
+	cp 3
 	jr nc, .animate_after_effect_y_update_pos ; If w_player_attacking = 3 or 4 (up or down), display the vertical after effect
 
 ; This diplays and updates the position of the horizontal after effect (left, right)
@@ -151,7 +151,7 @@ animate_after_effect::
 
 	; Check if we're attacking left or right to position it left or right of the player
 	ld a, [w_player_attacking]
-	cp a, 2
+	cp 2
 	jr nz, .animate_after_effect_x_update_pos_right
 
 .animate_after_effect_x_update_pos_left
@@ -177,7 +177,7 @@ animate_after_effect::
 	; Check if the after effect is x flipped to place the sprites correctly
 	ld a, [$FE30 + 3]
 	and %00100000 ; Only the x flip bit is useful for this
-	cp a, %00100000
+	cp %00100000
 	jr z, .animate_after_effect_y_update_pos_flipped
 
 .animate_after_effect_y_update_pos_not_flipped
@@ -198,7 +198,7 @@ animate_after_effect::
 .animate_after_effect_y_update_pos_check
 	; Check if we're attacking up or down to position it above or below the player
 	ld a, [w_player_attacking]
-	cp a, 3
+	cp 3
 	jr nz, .animate_after_effect_y_update_pos_down
 
 .animate_after_effect_y_update_pos_up
@@ -223,7 +223,7 @@ animate_after_effect::
 animate_attack_end::
 	; Check whether to mask out vertical or horizontal slash sprites
 	ld a, [w_player_attacking]
-	cp a, 3
+	cp 3
 	jr nc, .animate_attack_end_mask_y
 
 .animate_attack_end_mask_x
@@ -248,7 +248,7 @@ animate_attack_end::
 animate_jump::
 	; Check if player is going up
 	ld a, [w_player_jump_tracker]
-	cp a, 2
+	cp 2
 	jr nc, .animate_jump_falling
 
 .animate_jump_rising
@@ -275,20 +275,20 @@ animate_jump::
 animate_walk::
 	; Check if current frame is idle, if yes jump right to animate_walk_update_frame
 	ld a, [$FE04 + 2] ; $FE06 = 2nd OAMRAM spot's tile number
-	cp a, 1
+	cp 1
 	jr z, .animate_walk_update_frame
 	; Wait 10 frames before updating the walk animation
 	ld a, [w_frame_counter_walk]
 	inc a
 	ld [w_frame_counter_walk], a
-	cp a, 10 ; Every 10 frames, update the animation frame
+	cp 10 ; Every 10 frames, update the animation frame
 	jr z, .animate_walk_update_frame
 	jp draw_player.done ; Else, ret
 
 .animate_walk_update_frame
 	ld a, [$FE04 + 2]
 	inc a
-	cp a, 4
+	cp 4
 	jr nz, .animate_walk_update_sprite_index ; If still in range, set frame 1 or 2 of anim
 	ld a, 2 ; Else, we're past the last index so set it back to first frame of anim
 

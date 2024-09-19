@@ -168,6 +168,7 @@ no_direction::
 	; Go back to idle
 	ld a, 1
 	ld [$FE06], a
+
 	ret
 
 
@@ -197,7 +198,7 @@ check_jump::
 	; Check if player is already jumping
 	ld a, [w_player_jumping]
 	or 0
-	jr nz, .no_jump
+	ret nz
 
 	; Jump
 	ld a, JUMP_STRENGHT
@@ -207,19 +208,19 @@ check_jump::
 	ld a, 1
 	ld [w_player_jumping], a
 
-.no_jump
 	ret
 
 
 apply_gravity::
+	; Check if player is jumping
 	ld a, [w_player_jumping]
 	or 0
-	jr z, .done
+	ret z
 
 	; Is the player going up?
 	ld a, [w_player_jump_strenght]
 	or a
-	jr z, .falling ; If w_player_jump_strenght < 1, player is falling
+	jr z, .apply_gravity_falling ; If w_player_jump_strenght < 1, player is falling
 
 	; Decrease jump strenght
 	ld a, [w_player_jump_strenght]
@@ -230,9 +231,9 @@ apply_gravity::
 	ld a, MAX_UP_VELOCITY
 	ld [w_player_velocity], a
 
-	jr .done
+	ret
 
-.falling
+.apply_gravity_falling
 	; Check if reached max accumulator
 	ld a, [w_player_gravity_accu]
 	add GRAVITY_ACCU
@@ -251,16 +252,15 @@ apply_gravity::
 	; Check that max velocity hasn't been reached yet
 	ld a, [w_player_velocity]
 	cp MAX_DOWN_VELOCITY
-	jr z, .done
+	ret z
+
 	; Apply gravity
 	add GRAVITY
 	ld [w_player_velocity], a
 
-
 .update_accumulator:
 	ld [w_player_gravity_accu], a
 
-.done:
 	ret
 
 
@@ -273,7 +273,7 @@ update_position::
 
 	; Check if player is on the ground
 	cp 144 ; Assuming 144 is the ground level
-	jp c, .not_on_ground
+	ret c
 
 	ld a, 144
 	ld [w_player_position_y], a
@@ -284,5 +284,4 @@ update_position::
 	ld [w_player_jumping], a
 	ld [w_player_jump_tracker], a
 
-.not_on_ground:
 	ret
