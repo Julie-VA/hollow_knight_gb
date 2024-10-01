@@ -49,7 +49,7 @@ initialize_player::
 	ld b, a
 	ld a, [w_player_position_x]
 	ld c, a
-	ld d, 0
+	ld d, $00
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -63,148 +63,50 @@ initialize_player::
 	ld e, 0
 	call RenderSimpleSprite
 
-	; Set knight_top
-	; ld hl, _OAMRAM
-	; ld a, [w_player_position_y]
-	; ld [hli], a
-	; ld a, [w_player_position_x]
-	; ld [hli], a
-	; xor a
-	; ld [hli], a
-	; ld [hl], a
-
-	; Set knight_bottom
-	; ld hl, _OAMRAM + 4
-	; ld a, [w_player_position_y]
-	; add a, 8
-	; ld [hli], a
-	; ld a, [w_player_position_x]
-	; ld [hli], a
-	; ld a, $01
-	; ld [hli], a
-	; xor a
-	; ld [hl], a
-
 	; Set slashes out of screen for later use
 	; Set slash_1_x
-	ld hl, _OAMRAM + 8
 	xor a
-	ld [hli], a
-	ld [hli], a
-	ld a, $04
-	ld [hli], a
-	xor a
-	ld [hl], a
-
+	ld b, a
+	ld c, a
+	ld d, $04
+	ld e, a
+	call RenderSimpleSprite
 	; Set slash_2_x
-	ld hl, _OAMRAM + 12
-	xor a
-	ld [hli], a
-	ld [hli], a
-	ld a, $05
-	ld [hli], a
-	xor a
-	ld [hl], a
-
+	ld d, $05
+	call RenderSimpleSprite
 	; Set slash_3_x
-	ld hl, _OAMRAM + 16
-	xor a
-	ld [hli], a
-	ld [hli], a
-	ld a, $06
-	ld [hli], a
-	xor a
-	ld [hl], a
-
+	ld d, $06
+	call RenderSimpleSprite
 	; Set slash_4_x
-	ld hl, _OAMRAM + 20
-	xor a
-	ld [hli], a
-	ld [hli], a
-	ld a, $07
-	ld [hli], a
-	xor a
-	ld [hl], a
+	ld d, $07
+	call RenderSimpleSprite
 
 	; Set slash_after_effect_1_x
-	ld hl, _OAMRAM + 24
-	xor a
-	ld [hli], a
-	ld [hli], a
-	ld a, $08
-	ld [hli], a
-	xor a
-	ld [hl], a
-
+	ld d, $08
+	call RenderSimpleSprite
 	; Set slash_after_effect_2_x
-	ld hl, _OAMRAM + 28
-	xor a
-	ld [hli], a
-	ld [hli], a
-	ld a, $09
-	ld [hli], a
-	xor a
-	ld [hl], a
+	ld d, $09
+	call RenderSimpleSprite
 
 	; Set slash_1_y
-	ld hl, _OAMRAM + 32
-	xor a
-	ld [hli], a
-	ld [hli], a
-	ld a, $0A
-	ld [hli], a
-	xor a
-	ld [hl], a
-
+	ld d, $0A
+	call RenderSimpleSprite
 	; Set slash_2_y
-	ld hl, _OAMRAM + 36
-	xor a
-	ld [hli], a
-	ld [hli], a
-	ld a, $0B
-	ld [hli], a
-	xor a
-	ld [hl], a
-
+	ld d, $0B
+	call RenderSimpleSprite
 	; Set slash_3_y
-	ld hl, _OAMRAM + 40
-	xor a
-	ld [hli], a
-	ld [hli], a
-	ld a, $0C
-	ld [hli], a
-	xor a
-	ld [hl], a
-
+	ld d, $0C
+	call RenderSimpleSprite
 	; Set slash_4_y
-	ld hl, _OAMRAM + 44
-	xor a
-	ld [hli], a
-	ld [hli], a
-	ld a, $0D
-	ld [hli], a
-	xor a
-	ld [hl], a
+	ld d, $0D
+	call RenderSimpleSprite
 
 	; Set slash_after_effect_1_y
-	ld hl, _OAMRAM + 48
-	xor a
-	ld [hli], a
-	ld [hli], a
-	ld a, $0E
-	ld [hli], a
-	xor a
-	ld [hl], a
-
+	ld d, $0E
+	call RenderSimpleSprite
 	; Set slash_after_effect_2_y
-	ld hl, _OAMRAM + 52
-	xor a
-	ld [hli], a
-	ld [hli], a
-	ld a, $0F
-	ld [hli], a
-	xor a
-	ld [hl], a
+	ld d, $0F
+	call RenderSimpleSprite
 
 	ret
 
@@ -247,14 +149,14 @@ update_player_handle_input:
 draw_player:
 	; Update Y position in OAM
 	ld a, [w_player_position_y]
-	ld [_OAMRAM], a
+	ld [wShadowOAM], a
 	add a, 8
-	ld [_OAMRAM + 4], a
+	ld [wShadowOAM + 4], a
 
 	; Update X position in OAM
 	ld a, [w_player_position_x]
-	ld [_OAMRAM + 1], a
-	ld [_OAMRAM + 5], a
+	ld [wShadowOAM + 1], a
+	ld [wShadowOAM + 5], a
 
 	; Check if player is jumping, if so animate jump
 	ld a, [w_player_jumping]

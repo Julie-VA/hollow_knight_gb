@@ -105,25 +105,3 @@ copy_de_into_memory_at_hl_with_52_offset::
 	or c
 	jp nz, copy_de_into_memory_at_hl_with_52_offset
 	ret
-
-; clear_oam::
-; 	ld hl, _OAMRAM
-; .clear
-; 	xor a
-; 	ld [hli], a
-; 	ld a, h
-; 	cp $FF ; OAMRAM ends at $FF00
-; 	jr nz, .clear
-; 	ret
-
-
-; fill the screen with the tile at address in register b
-fill_screen:
-	ld hl, _SCRN0
-.clear
-	ld a, b
-	ld [hli], a
-	ld a, h
-	cp $9C ; screen ends at $9C00
-	jr nz, .clear
-	ret

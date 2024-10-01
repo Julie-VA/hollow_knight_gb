@@ -66,7 +66,7 @@ attack::
 ; If no direction is pressed while attacking, set w_player_attacking to the direction the player is facing
 .attack_no_dir
 	; Check attributes of player head, to see if it's flipped
-	ld a, [$FE00 + 3]
+	ld a, [wShadowOAM + $00 + 3]
 	or a
 	jr z, .attack_no_dir_flip_right
 .attack_no_dir_flip_left
@@ -88,19 +88,19 @@ attack::
 .attack_set_attributes_x_slash
 	; Set attack and after effect attributes
 	; attack
-	ld [$FE08 + 3], a
-	ld [$FE0C + 3], a
-	ld [$FE10 + 3], a
-	ld [$FE14 + 3], a
+	ld [wShadowOAM + $08 + 3], a
+	ld [wShadowOAM + $0C + 3], a
+	ld [wShadowOAM + $10 + 3], a
+	ld [wShadowOAM + $14 + 3], a
 	; after effect
-	ld [$FE18 + 3], a
-	ld [$FE1C + 3], a
+	ld [wShadowOAM + $18 + 3], a
+	ld [wShadowOAM + $1C + 3], a
 	ret
 
 ; This is used to x flip in the direction of the player and potentially y flip (with b) the vertical slashes (used in .attack_check_down and .attack_check_up)
 .attack_set_attributes_y_slash
 	; Check attributes of player head, to see if it's flipped
-	ld a, [$FE00 + 3]
+	ld a, [wShadowOAM + $00 + 3]
 	or a
 	jr z, .attack_set_attributes_y_slash_flip_right
 .attack_set_attributes_y_slash_flip_left
@@ -116,22 +116,22 @@ attack::
 
 	; Set attack and after effect attributes
 	; attack
-	ld [$FE20 + 3], a
-	ld [$FE24 + 3], a
-	ld [$FE28 + 3], a
-	ld [$FE2C + 3], a
+	ld [wShadowOAM + $20 + 3], a
+	ld [wShadowOAM + $24 + 3], a
+	ld [wShadowOAM + $28 + 3], a
+	ld [wShadowOAM + $2C + 3], a
 	; after effect
-	ld [$FE30 + 3], a
-	ld [$FE34 + 3], a
+	ld [wShadowOAM + $30 + 3], a
+	ld [wShadowOAM + $34 + 3], a
 	ret
 
 
 move_left::
 	; Flip knight_top
 	ld a, %00100000
-	ld [$FE00 + 3], a
+	ld [wShadowOAM + $00 + 3], a
 	; Flip knight_bottom
-	ld [$FE04 + 3], a
+	ld [wShadowOAM + $04 + 3], a
 
 	; Decrease the player's x position
 	ld a, [w_player_position_x]
@@ -144,9 +144,9 @@ move_left::
 move_right::
 	; Flip knight_top
 	xor a
-	ld [$FE00 + 3], a
+	ld [wShadowOAM + $00 + 3], a
 	; Flip knight_bottom
-	ld [$FE04 + 3], a
+	ld [wShadowOAM + $04 + 3], a
 
 	; Increase the player's x position
 	ld a, [w_player_position_x]
@@ -167,7 +167,7 @@ move_up::
 no_direction::
 	; Go back to idle
 	ld a, 1
-	ld [$FE06], a
+	ld [wShadowOAM + $04 + 2], a
 
 	ret
 
