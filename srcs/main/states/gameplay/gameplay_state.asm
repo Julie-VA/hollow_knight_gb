@@ -5,6 +5,7 @@ SECTION "GameplayState", ROM0
 
 init_gameplay_state::
 	call initialize_player
+	call initialize_background
 
 	; Turn the LCD on
 	ld a, LCDCF_ON  | LCDCF_BGON | LCDCF_OBJON | LCDCF_BG9800

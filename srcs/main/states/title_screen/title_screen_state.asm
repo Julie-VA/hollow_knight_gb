@@ -3,11 +3,8 @@ INCLUDE "srcs/main/utils/text-macros.inc"
 
 SECTION "TitleScreenState", ROM0
  
-title_screen_part_one_tile_data: INCBIN "resources/title_screen.2bpp"
-title_screen_part_one_tile_data_end:
-
-; title_screen_part_two_tile_data: INCBIN "resources/title_screen_part_2.2bpp"
-; title_screen_part_two_tile_data_end:
+title_screen_tile_data: INCBIN "resources/title_screen.2bpp"
+title_screen_tile_data_end:
  
 title_screen_tile_map: INCBIN "resources/title_screen.tilemap"
 title_screen_tile_map_end:
@@ -27,9 +24,9 @@ init_title_screen_state::
 
 draw_title_screen::
 	; Copy the tile data
-	ld de, title_screen_part_one_tile_data
+	ld de, title_screen_tile_data
 	ld hl, $8800
-	ld bc, title_screen_part_one_tile_data_end - title_screen_part_one_tile_data
+	ld bc, title_screen_tile_data_end - title_screen_tile_data
 	call copy_de_into_memory_at_hl
 	
 	; Copy the tilemap

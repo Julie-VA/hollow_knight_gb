@@ -35,7 +35,7 @@ initialize_player::
 
 	ld a, 16
     ld [w_player_position_x], a
-	ld a, 144
+	ld a, 136
     ld [w_player_position_y], a
 
     ; Copy the player's tile data into VRAM

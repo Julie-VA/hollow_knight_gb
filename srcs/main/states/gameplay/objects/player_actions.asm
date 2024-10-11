@@ -133,6 +133,12 @@ move_left::
 	; Flip knight_bottom
 	ld [wShadowOAM + $04 + 3], a
 
+	call check_collision
+
+	; If we're going to hit a solid tile, don't move
+	cp 1
+	ret z
+
 	; Decrease the player's x position
 	ld a, [w_player_position_x]
 	sub PLAYER_MOVE_SPEED
