@@ -137,6 +137,7 @@ update_player_handle_input:
 	and PADF_A
 	call nz, attack
 
+	call check_collision_ground
 	call apply_gravity
 	call update_position
 
