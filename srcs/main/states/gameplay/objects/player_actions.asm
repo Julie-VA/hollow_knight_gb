@@ -133,8 +133,7 @@ move_left::
 	; Flip knight_bottom
 	ld [wShadowOAM + $04 + 3], a
 
-	call check_collision
-
+	call check_collision_left
 	; If we're going to hit a solid tile, don't move
 	cp 1
 	ret z
@@ -153,6 +152,11 @@ move_right::
 	ld [wShadowOAM + $00 + 3], a
 	; Flip knight_bottom
 	ld [wShadowOAM + $04 + 3], a
+
+	call check_collision_right
+	; If we're going to hit a solid tile, don't move
+	cp 1
+	ret z
 
 	; Increase the player's x position
 	ld a, [w_player_position_x]
@@ -277,6 +281,7 @@ update_position::
 	add a, [hl]
 	ld [w_player_position_y], a
 
+	; check_collision_down
 	; Check if player is on the ground
 	cp 144 ; Assuming 144 is the ground level
 	ret c
