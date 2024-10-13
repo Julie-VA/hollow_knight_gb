@@ -133,7 +133,7 @@ move_left::
 	; Flip knight_bottom
 	ld [wShadowOAM + $04 + 3], a
 
-	call check_collision_left
+	call check_collision_left_new
 	; If we're going to hit a solid tile, don't move
 	cp 1
 	ret z
@@ -153,7 +153,7 @@ move_right::
 	; Flip knight_bottom
 	ld [wShadowOAM + $04 + 3], a
 
-	call check_collision_right
+	call check_collision_right_new
 	; If we're going to hit a solid tile, don't move
 	cp 1
 	ret z
