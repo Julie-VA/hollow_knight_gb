@@ -7,6 +7,7 @@ w_player_position_x::		db
 w_player_position_y::		db
 
 w_player_jumping::			db
+w_player_airborne::			db
 w_player_velocity::			db
 w_player_jump_strenght::	db
 w_player_gravity_accu::		db ; The accumulator is used to travel by GRAVITY every GRAVITY_ACCU_MAX frames
@@ -29,6 +30,7 @@ initialize_player::
 	ld [w_frame_counter_attack], a
 	ld [w_player_gravity_accu], a
 	ld [w_player_jumping], a
+	ld [w_player_airborne], a
 	ld [w_player_velocity], a
 	ld [w_player_jump_tracker], a
 	ld [w_player_attacking], a
@@ -116,7 +118,7 @@ update_player::
 update_player_handle_input:
 	ld a, [w_cur_keys]
 	and PADF_UP
-	call nz, check_jump
+	call nz, start_jump
 
 	call cut_jump_check_up_press
 
@@ -137,11 +139,11 @@ update_player_handle_input:
 	and PADF_A
 	call nz, attack
 
-	call check_collision_ground
+	call jump
 	call apply_gravity
-	call update_position
 
-	call draw_player ; Should probably move up to update_player
+.update_player_draw
+	call draw_player
 	call draw_attack
 
 	ret
@@ -159,8 +161,11 @@ draw_player:
 	ld [wShadowOAM + 1], a
 	ld [wShadowOAM + 5], a
 
-	; Check if player is jumping, if so animate jump
+	; Check if player is jumping or airborne, if so animate jump
 	ld a, [w_player_jumping]
+	or a
+	jp nz, animate_jump
+	ld a, [w_player_airborne]
 	or a
 	jp nz, animate_jump
 

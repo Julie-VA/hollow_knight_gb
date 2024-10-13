@@ -3,7 +3,7 @@ INCLUDE "srcs/main/utils/constants.inc"
 
 SECTION "PlayerCollisions", ROM0
 
-check_collision_left_new::
+check_collision_left::
 	; Load x position in b
 	ld a, [w_player_position_x]
 	sub 8 ; Offset grid by 8
@@ -20,11 +20,11 @@ check_collision_left_new::
 	sub 16 ; Offset grid by 16 to check at the head of player
 	ld d, a
 
-	call check_collision_new
+	call check_collision
 	ret
 
 
-check_collision_right_new::
+check_collision_right::
 	; Load x position in b
 	ld a, [w_player_position_x]
 	; Offset grid by 8, add 7 to go to the end of the sprite and add 1 to check incoming tile -> result = 0
@@ -40,7 +40,7 @@ check_collision_right_new::
 	sub 16 ; Offset grid by 16 to check at the head of player
 	ld d, a
 
-	call check_collision_new
+	call check_collision
 	ret
 
 
@@ -53,7 +53,7 @@ check_collision_right_new::
 ; 2 (implemented): Set last 3 bits of y position to 0 (same as dividing since we multiply after), and multiply by 4 to get tile y position. Then add tile x position
 ; 3: Add $98 to high byte to get the tilemap address
 ; 4: Get tile number from tilemap address
-check_collision_new:
+check_collision:
 	; Load x position in a
 	ld a, b
 
@@ -90,22 +90,22 @@ check_collision_new:
 
 	; Check collision
 	or 0
-	jr nz, .check_collision_hit_new
+	jr nz, .check_collision_hit
 
 	; Check if we have already checked collision for top tile
 	ld a, d
-	cp 0
-	jr z, .check_collision_no_hit_new
+	cp 255
+	jr z, .check_collision_no_hit
 	; If we haven't, place top tile y position in c and execute check_collision again
 	ld c, d
-	ld d, 0
-	jr check_collision_new
+	ld d, 255
+	jr check_collision
 
-.check_collision_no_hit_new
-	ld a, 0
+.check_collision_no_hit
+	xor a
 	ret
 
-.check_collision_hit_new
+.check_collision_hit
 	ld a, 1
 	ret
 
@@ -145,7 +145,9 @@ check_collision_ground::
 	or 0
 	jr nz, .check_collision_ground_hit
 
+	xor a
 	ret
 
 .check_collision_ground_hit
+	ld a, 1
 	ret

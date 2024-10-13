@@ -133,7 +133,7 @@ move_left::
 	; Flip knight_bottom
 	ld [wShadowOAM + $04 + 3], a
 
-	call check_collision_left_new
+	call check_collision_left
 	; If we're going to hit a solid tile, don't move
 	cp 1
 	ret z
@@ -153,7 +153,7 @@ move_right::
 	; Flip knight_bottom
 	ld [wShadowOAM + $04 + 3], a
 
-	call check_collision_right_new
+	call check_collision_right
 	; If we're going to hit a solid tile, don't move
 	cp 1
 	ret z
@@ -166,19 +166,10 @@ move_right::
 	ret
 
 
-move_up::
-	call check_jump
-	call apply_gravity
-	call update_position
-
-	ret
-
-
 no_direction::
 	; Go back to idle
 	ld a, 1
 	ld [wShadowOAM + $04 + 2], a
-
 	ret
 
 
@@ -204,9 +195,12 @@ cut_jump_check_up_press::
 	ret
 
 
-check_jump::
-	; Check if player is already jumping
+start_jump::
+	; Check if player is already jumping or airborne
 	ld a, [w_player_jumping]
+	or 0
+	ret nz
+	ld a, [w_player_airborne]
 	or 0
 	ret nz
 
@@ -214,41 +208,76 @@ check_jump::
 	ld a, JUMP_STRENGHT
 	ld [w_player_jump_strenght], a
 
-	; Mark player as jumping
+	; Mark player as jumping and airborne
 	ld a, 1
 	ld [w_player_jumping], a
+	ld [w_player_airborne], a
 
 	ret
 
 
-apply_gravity::
-	; Check if player is jumping
+jump::
+	; Check if player is jumping (needed?)
 	ld a, [w_player_jumping]
 	or 0
 	ret z
 
-	; Is the player going up?
+	; Is the player still going up?
 	ld a, [w_player_jump_strenght]
 	or a
-	jr z, .apply_gravity_falling ; If w_player_jump_strenght < 1, player is falling
+	jr z, .jump_stop ; If w_player_jump_strenght = 0, player is falling
 
 	; Decrease jump strenght
 	ld a, [w_player_jump_strenght]
 	add MAX_UP_VELOCITY
 	ld [w_player_jump_strenght], a
 
-	; Make player go up
-	ld a, MAX_UP_VELOCITY
-	ld [w_player_velocity], a
+	; Update position
+	ld a, [w_player_position_y]
+	add MAX_UP_VELOCITY
+	ld [w_player_position_y], a
 
 	ret
 
-.apply_gravity_falling
+.jump_stop
+	xor a
+	ld [w_player_jumping], a
+	ret
+
+
+apply_gravity::
+	; Check if player is jumping, if they are ret
+	ld a, [w_player_jumping]
+	or 0
+	ret nz
+
+	; Check if player is on the ground, if they aren't apply gravity
+	call check_collision_ground
+	or 0
+	jr z, .apply_gravity_body
+
+	; Check if player was airborne, if they were reset all relevant variables
+	ld a, [w_player_airborne]
+	or 0
+	ret z
+
+	xor a
+	ld [w_player_velocity], a
+	ld [w_player_gravity_accu], a
+	ld [w_player_jump_tracker], a
+	ld [w_player_airborne], a
+	ret
+
+.apply_gravity_body
+	; Mark player as airborne
+	ld a, 1
+	ld [w_player_airborne], a
+
 	; Check if reached max accumulator
 	ld a, [w_player_gravity_accu]
 	add GRAVITY_ACCU
 	cp GRAVITY_ACCU_MAX
-	jr c, .update_accumulator
+	jr c, .apply_gravity_update_accumulator
 
 	; Reset accumulator
 	xor a
@@ -258,41 +287,26 @@ apply_gravity::
 	ld a, [w_player_jump_tracker]
 	inc a
 	ld [w_player_jump_tracker], a
+	; inc w_player_jump_tracker works?
 
 	; Check that max velocity hasn't been reached yet
 	ld a, [w_player_velocity]
 	cp MAX_DOWN_VELOCITY
-	ret z
+	jr z, .apply_gravity_update_position
 
 	; Apply gravity
 	add GRAVITY
 	ld [w_player_velocity], a
+	jr .apply_gravity_update_position
 
-.update_accumulator:
+.apply_gravity_update_accumulator
 	ld [w_player_gravity_accu], a
 
-	ret
-
-
-update_position::
+.apply_gravity_update_position
 	; Update Y position based on Y velocity
 	ld a, [w_player_position_y]
 	ld hl, w_player_velocity
 	add a, [hl]
 	ld [w_player_position_y], a
-
-	; check_collision_down
-	; Check if player is on the ground
-	cp 144 ; Assuming 144 is the ground level
-	ret c
-
-	ld a, 144
-	ld [w_player_position_y], a
-
-	xor a
-	ld [w_player_velocity], a
-	ld [w_player_gravity_accu], a
-	ld [w_player_jumping], a
-	ld [w_player_jump_tracker], a
 
 	ret
