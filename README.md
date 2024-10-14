@@ -1,1 +1,2 @@
 A WIP of Team Cherry's Hollow Knight on GameBoy written in z80 assembly.
+This is a fun personal project where my aim is to learn the ins and outs of the hardware, understand the intricacies of memory management and performance in constrained environments and learn how to optimize code for limited hardware resources, all while getting more comfortable with assembly and low-level programming in general.
