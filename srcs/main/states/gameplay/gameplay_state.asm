@@ -8,21 +8,20 @@ init_gameplay_state::
 	call initialize_background
 
 	; Turn the LCD on
-	ld a, LCDCF_ON  | LCDCF_BGON | LCDCF_OBJON | LCDCF_BG9800
+	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON | LCDCF_BG9800
 	ld [rLCDC], a
 
 	ret
 
 
 update_gameplay_state::
-
 	; Save what keys were pressed last frame
 	ld a, [w_cur_keys]
 	ld [w_last_keys], a
 
 	call input
 
-	; Then put a call to ResetShadowOAM at the beginning of your main loop.
+	; Put a call to ResetShadowOAM at the beginning of your main loop
 	call ResetShadowOAM
 
 	call update_player

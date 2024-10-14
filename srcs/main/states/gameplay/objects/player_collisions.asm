@@ -89,7 +89,7 @@ check_collision:
 	ld a, [hl]
 
 	; Check collision
-	or 0
+	or a
 	jr nz, .check_collision_hit
 
 	; Check if we have already checked collision for top tile
@@ -142,7 +142,7 @@ check_collision_ground::
 	ld a, [hl]
 
 	; Check collision
-	or 0
+	or a
 	jr nz, .check_collision_ground_hit
 
 	xor a

@@ -185,7 +185,7 @@ cut_jump_check_up_press::
 .cut_jump:
 	; Check if player is already jumping
 	ld a, [w_player_jumping]
-	or 0
+	or a
 	ret z
 
 	; Player is jumping, stop upwards momentum
@@ -198,10 +198,10 @@ cut_jump_check_up_press::
 start_jump::
 	; Check if player is already jumping or airborne
 	ld a, [w_player_jumping]
-	or 0
+	or a
 	ret nz
 	ld a, [w_player_airborne]
-	or 0
+	or a
 	ret nz
 
 	; Jump
@@ -219,7 +219,7 @@ start_jump::
 jump::
 	; Check if player is jumping (needed?)
 	ld a, [w_player_jumping]
-	or 0
+	or a
 	ret z
 
 	; Is the player still going up?
@@ -242,30 +242,35 @@ jump::
 .jump_stop
 	xor a
 	ld [w_player_jumping], a
+
+	; We don't use w_player_velocity for the rising part of the jump since we're only ever going up by MAX_UP_VELOCITY, however we need to set the velocity in preparation
+	; for the fall down, as still having some velocity upwards helps give that floaty feeling at the apex of the jump
+	ld a, MAX_UP_VELOCITY
+	ld [w_player_velocity], a
 	ret
 
 
 apply_gravity::
 	; Check if player is jumping, if they are ret
 	ld a, [w_player_jumping]
-	or 0
+	or a
 	ret nz
 
 	; Check if player is on the ground, if they aren't apply gravity
 	call check_collision_ground
-	or 0
+	or a
 	jr z, .apply_gravity_body
 
 	; Check if player was airborne, if they were reset all relevant variables
 	ld a, [w_player_airborne]
-	or 0
+	or a
 	ret z
 
 	xor a
-	ld [w_player_velocity], a
 	ld [w_player_gravity_accu], a
 	ld [w_player_jump_tracker], a
 	ld [w_player_airborne], a
+	ld [w_player_velocity], a
 	ret
 
 .apply_gravity_body
@@ -287,7 +292,6 @@ apply_gravity::
 	ld a, [w_player_jump_tracker]
 	inc a
 	ld [w_player_jump_tracker], a
-	; inc w_player_jump_tracker works?
 
 	; Check that max velocity hasn't been reached yet
 	ld a, [w_player_velocity]
@@ -310,3 +314,11 @@ apply_gravity::
 	ld [w_player_position_y], a
 
 	ret
+
+
+update_position::
+; Update Y position based on Y velocity
+	ld a, [w_player_position_y]
+	ld hl, w_player_velocity
+	add a, [hl]
+	ld [w_player_position_y], a

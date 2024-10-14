@@ -28,10 +28,10 @@ initialize_player::
 	xor a
 	ld [w_frame_counter_walk], a
 	ld [w_frame_counter_attack], a
-	ld [w_player_gravity_accu], a
 	ld [w_player_jumping], a
 	ld [w_player_airborne], a
 	ld [w_player_velocity], a
+	ld [w_player_gravity_accu], a
 	ld [w_player_jump_tracker], a
 	ld [w_player_attacking], a
 
@@ -132,7 +132,7 @@ update_player_handle_input:
 
 	ld a, [w_cur_keys]
 	and (PADF_LEFT | PADF_RIGHT) ; Mask out left and right buttons
-    or 0
+    or a
 	call z, no_direction
 
 	ld a, [w_cur_keys]
@@ -141,6 +141,7 @@ update_player_handle_input:
 
 	call jump
 	call apply_gravity
+	; call update_position
 
 .update_player_draw
 	call draw_player
@@ -172,7 +173,7 @@ draw_player:
 	; Check if player is moving left or right, if so animate walk
 	ld a, [w_cur_keys]
 	and (PADF_LEFT | PADF_RIGHT)
-	or 0
+	or a
 	jp nz, animate_walk
 
 .done::

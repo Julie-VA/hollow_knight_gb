@@ -61,7 +61,7 @@ clear_title_screen_tiles::
 	jp nz, .clear_title_screen_tiles_loop
 
 	; Turn on LCD
-	ld a, LCDCF_ON  | LCDCF_BGON|LCDCF_OBJON | LCDCF_OBJ16
+	ld a, LCDCF_ON  | LCDCF_BGON | LCDCF_OBJON | LCDCF_OBJ16
 	ld [rLCDC], a
 
 	ret
