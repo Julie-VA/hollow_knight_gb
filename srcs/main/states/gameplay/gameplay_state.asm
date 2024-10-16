@@ -1,11 +1,12 @@
 INCLUDE "srcs/main/utils/hardware.inc"
-INCLUDE "srcs/main/utils/text-macros.inc"
 
 SECTION "GameplayState", ROM0
 
 init_gameplay_state::
 	call initialize_player
 	call initialize_background
+
+	call init_vblank_interrupt
 
 	; Turn the LCD on
 	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON | LCDCF_BG9800
@@ -26,8 +27,7 @@ update_gameplay_state::
 
 	call update_player
 
-	call wait_not_vblank
-	call wait_vblank
+	halt
 
 	ld a, HIGH(wShadowOAM)
 	call hOAMDMA

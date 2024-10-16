@@ -11,7 +11,6 @@ w_player_airborne::			db
 w_player_velocity::			db
 w_player_jump_strenght::	db
 w_player_gravity_accu::		db ; The accumulator is used to travel by GRAVITY every GRAVITY_ACCU_MAX frames
-w_player_jump_tracker::		db ; Used to start the falling animation a bit later
 
 w_player_attacking::		db ; 0 = not attacking, 1 = attacking right, 2 = left, 3 = up, 4 = down
 
@@ -19,6 +18,7 @@ SECTION "Counters", WRAM0
 
 w_frame_counter_walk::		db
 w_frame_counter_attack::	db
+w_player_counter_jump::		db ; Used to start the falling animation a bit later
 
 SECTION "Player", ROM0
 knight_tile_data: INCBIN "resources/sprites.2bpp"
@@ -32,7 +32,7 @@ initialize_player::
 	ld [w_player_airborne], a
 	ld [w_player_velocity], a
 	ld [w_player_gravity_accu], a
-	ld [w_player_jump_tracker], a
+	ld [w_player_counter_jump], a
 	ld [w_player_attacking], a
 
 	ld a, 16

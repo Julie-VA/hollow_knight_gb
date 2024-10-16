@@ -247,7 +247,7 @@ animate_attack_end::
 
 animate_jump::
 	; Check if player is going up
-	ld a, [w_player_jump_tracker]
+	ld a, [w_player_counter_jump]
 	cp 2
 	jr nc, .animate_jump_falling
 

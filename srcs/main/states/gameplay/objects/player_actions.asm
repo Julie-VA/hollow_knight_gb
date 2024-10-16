@@ -268,7 +268,7 @@ apply_gravity::
 
 	xor a
 	ld [w_player_gravity_accu], a
-	ld [w_player_jump_tracker], a
+	ld [w_player_counter_jump], a
 	ld [w_player_airborne], a
 	ld [w_player_velocity], a
 	ret
@@ -289,9 +289,9 @@ apply_gravity::
 	ld [w_player_gravity_accu], a
 
 	; Keep track of where we are in the jump for animation
-	ld a, [w_player_jump_tracker]
+	ld a, [w_player_counter_jump]
 	inc a
-	ld [w_player_jump_tracker], a
+	ld [w_player_counter_jump], a
 
 	; Check that max velocity hasn't been reached yet
 	ld a, [w_player_velocity]
