@@ -257,7 +257,7 @@ apply_gravity::
 	ret nz
 
 	; Check if player is on the ground, if they aren't apply gravity
-	call check_collision_ground
+	call check_collision_down
 	or a
 	jr z, .apply_gravity_body
 
@@ -314,7 +314,7 @@ apply_gravity::
 	ld [w_player_position_y], a
 
 	; Check if player is on the ground, if they are, check if player position y is odd or even, if it's odd we're inside the floor (we move 2 pixels at a time at MAX_DOWN_VELOCITY)
-	call check_collision_ground
+	call check_collision_down
 	or a
 	ret z
 
