@@ -44,6 +44,26 @@ check_collision_right::
 	ret
 
 
+; check_collision_down::
+; 	; Load x position for left side in b
+; 	ld a, [w_player_position_x]
+; 	sub 8 ; Offset grid by 8
+; 	ld b, a
+
+; 	; Load y position in c
+; 	ld a, [w_player_position_y]
+; 	; Offset grid by 16, add 8 to check at the feet of player, add 7 to go to the end of the sprite and add 1 to check incoming tile -> result = 0
+; 	ld c, a
+
+; 	; Load x position for right side in d
+; 	ld a, [w_player_position_y]
+; 	; Offset grid by 8, add 7 to go to the end of the sprite and add 1 to check incoming tile -> result = 0
+; 	ld d, a
+
+; 	call check_collision
+; 	ret
+
+
 ; @param b: X position
 ; @param c: Y position for bottom tile
 ; @param d: Y position for top tile

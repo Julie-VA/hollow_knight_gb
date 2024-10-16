@@ -313,12 +313,16 @@ apply_gravity::
 	add a, [hl]
 	ld [w_player_position_y], a
 
-	ret
+	; Check if player is on the ground, if they are, check if player position y is odd or even, if it's odd we're inside the floor (we move 2 pixels at a time at MAX_DOWN_VELOCITY)
+	call check_collision_ground
+	or a
+	ret z
 
-
-update_position::
-; Update Y position based on Y velocity
 	ld a, [w_player_position_y]
-	ld hl, w_player_velocity
-	add a, [hl]
+	bit 0, a
+	ret z ; Ret if position is even
+
+	ld a, [w_player_position_y] ; Correct if position is odd
+	dec a
 	ld [w_player_position_y], a
+	ret

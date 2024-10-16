@@ -141,7 +141,6 @@ update_player_handle_input:
 
 	call jump
 	call apply_gravity
-	; call update_position
 
 .update_player_draw
 	call draw_player
