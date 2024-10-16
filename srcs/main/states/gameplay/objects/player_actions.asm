@@ -14,7 +14,7 @@ attack::
 	ld a, [w_cur_keys]
 	and PADF_DOWN
 	jr z, .attack_check_left
-	ld a, [w_player_jumping]
+	ld a, [w_player_airborne]
 	or a
 	jr nz, .attack_check_down_jumping
 	ld a, 3
@@ -192,6 +192,8 @@ cut_jump_check_up_press::
 	xor a
 	ld [w_player_jump_strenght], a
 
+
+
 	ret
 
 
@@ -222,6 +224,17 @@ jump::
 	or a
 	ret z
 
+	call check_collision_up
+	or a
+	jr z, .jump_body
+
+	xor a
+	ld [w_player_jump_strenght], a
+	ld [w_player_velocity], a ; This is important, we set it after a normal jump to make it floaty but having velocity after the player hit their head would make them clip through
+	ld [w_player_jumping], a
+	ret
+
+.jump_body
 	; Is the player still going up?
 	ld a, [w_player_jump_strenght]
 	or a
@@ -259,7 +272,7 @@ apply_gravity::
 	; Check if player is on the ground, if they aren't apply gravity
 	call check_collision_down
 	or a
-	jr z, .apply_gravity_body
+	jr z, .apply_gravity_check_up
 
 	; Check if player was airborne, if they were reset all relevant variables
 	ld a, [w_player_airborne]
@@ -272,6 +285,15 @@ apply_gravity::
 	ld [w_player_airborne], a
 	ld [w_player_velocity], a
 	ret
+
+.apply_gravity_check_up
+	; This is necessary because if the jump gets cut, we don't want to have velocity upwards, making us potentially clip through stuff (this is easier to check here than in cut_jump)
+	call check_collision_up
+	or a
+	jr z, .apply_gravity_body
+
+	xor a
+	ld [w_player_velocity], a
 
 .apply_gravity_body
 	; Mark player as airborne

@@ -3,6 +3,9 @@ INCLUDE "srcs/main/utils/hardware.inc"
 SECTION "VBlank Interrupt", ROM0[$0040]
 
 vblank_interrupt:
+	ld a, HIGH(wShadowOAM)
+	call hOAMDMA
+
 	reti
 
 	; This is useful if we need to do something during VBlank

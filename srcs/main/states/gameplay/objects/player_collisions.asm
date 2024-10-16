@@ -110,6 +110,26 @@ check_collision_left_right:
 	ret
 
 
+check_collision_up::
+	; Load x position of left side in b
+	ld a, [w_player_position_x]
+	sub 8 ; Offset grid by 8
+	ld b, a
+
+	; Load x position of right side in c
+	ld a, [w_player_position_x]
+	dec a ; Offset grid by 8 and add 7 to go to the end of the sprite
+	ld c, a
+
+	; Load y position in d
+	ld a, [w_player_position_y]
+	sub 17 ; Offset grid by 16 and sub 1 to check incoming tile
+	ld d, a
+
+	call check_collision_up_down
+	ret
+
+
 check_collision_down::
 	; Load x position of left side in b
 	ld a, [w_player_position_x]

@@ -29,7 +29,4 @@ update_gameplay_state::
 
 	halt
 
-	ld a, HIGH(wShadowOAM)
-	call hOAMDMA
-
 	jp update_gameplay_state
