@@ -7,6 +7,7 @@ w_player_position_x::		db
 w_player_position_y::		db
 
 w_player_jumping::			db
+w_player_jump_cut::			db
 w_player_airborne::			db
 w_player_velocity::			db
 w_player_jump_strenght::	db
@@ -29,6 +30,7 @@ initialize_player::
 	ld [w_frame_counter_walk], a
 	ld [w_frame_counter_attack], a
 	ld [w_player_jumping], a
+	ld [w_player_jump_cut], a
 	ld [w_player_airborne], a
 	ld [w_player_velocity], a
 	ld [w_player_gravity_accu], a
@@ -120,7 +122,9 @@ update_player_handle_input:
 	and PADF_UP
 	call nz, start_jump
 
-	call cut_jump_check_up_press
+	ld a, [w_player_jumping]
+	or a
+	call nz, cut_jump ; Call if player is jumping
 
     ld a, [w_cur_keys]
     and PADF_LEFT
@@ -139,8 +143,13 @@ update_player_handle_input:
 	and PADF_A
 	call nz, attack
 
-	call jump
-	call apply_gravity
+	ld a, [w_player_jumping]
+	or a
+	call nz, jump ; Call if player is jumping
+
+	ld a, [w_player_jumping]
+	or a
+	call z, apply_gravity ; Call if player is not jumping
 
 .update_player_draw
 	call draw_player
@@ -163,10 +172,8 @@ draw_player:
 
 	; Check if player is jumping or airborne, if so animate jump
 	ld a, [w_player_jumping]
-	or a
-	jp nz, animate_jump
-	ld a, [w_player_airborne]
-	or a
+	ld hl, w_player_airborne
+	or a, [hl]
 	jp nz, animate_jump
 
 	; Check if player is moving left or right, if so animate walk

@@ -173,7 +173,7 @@ no_direction::
 	ret
 
 
-cut_jump_check_up_press::
+cut_jump::
 	ld a, [w_last_keys] ; Load the previous frame's key state
 	and PADF_UP
 	ret z ; If up wasn't pressed in the last frame, ret
@@ -182,28 +182,18 @@ cut_jump_check_up_press::
 	and PADF_UP
 	ret nz ; If up is still pressed, ret
 
-.cut_jump:
-	; Check if player is already jumping
-	ld a, [w_player_jumping]
-	or a
-	ret z
-
-	; Player is jumping, stop upwards momentum
+	; Stop the jump
 	xor a
+	ld [w_player_jumping], a
 	ld [w_player_jump_strenght], a
-
-
-
 	ret
 
 
 start_jump::
 	; Check if player is already jumping or airborne
 	ld a, [w_player_jumping]
-	or a
-	ret nz
-	ld a, [w_player_airborne]
-	or a
+	ld hl, w_player_airborne
+	or a, [hl]
 	ret nz
 
 	; Jump
@@ -219,11 +209,6 @@ start_jump::
 
 
 jump::
-	; Check if player is jumping (needed?)
-	ld a, [w_player_jumping]
-	or a
-	ret z
-
 	call check_collision_up
 	or a
 	jr z, .jump_body
@@ -264,11 +249,6 @@ jump::
 
 
 apply_gravity::
-	; Check if player is jumping, if they are ret
-	ld a, [w_player_jumping]
-	or a
-	ret nz
-
 	; Check if player is on the ground, if they aren't apply gravity
 	call check_collision_down
 	or a
@@ -287,11 +267,14 @@ apply_gravity::
 	ret
 
 .apply_gravity_check_up
-	; This is necessary because if the jump gets cut, we don't want to have velocity upwards, making us potentially clip through stuff (this is easier to check here than in cut_jump)
+	; Necessary because if the jump ends right before an obstacle, we don't want to have velocity upwards, making us potentially clip through stuff
 	call check_collision_up
 	or a
 	jr z, .apply_gravity_body
 
+	ld a, [w_player_counter_jump]
+	or a
+	jr nz, .apply_gravity_body
 	xor a
 	ld [w_player_velocity], a
 
