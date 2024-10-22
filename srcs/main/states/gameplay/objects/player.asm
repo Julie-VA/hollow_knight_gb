@@ -13,7 +13,7 @@ w_player_velocity::			db
 w_player_jump_strenght::	db
 w_player_gravity_accu::		db ; The accumulator is used to travel by GRAVITY every GRAVITY_ACCU_MAX frames
 
-w_player_attacking::		db ; 0 = not attacking, 1 = attacking right, 2 = left, 3 = up, 4 = down
+w_player_attacking::		db ; 0 = not attacking, 1 = attacking right, 2 = left, 3 = up, 4 = down (see constants)
 
 SECTION "Counters", WRAM0
 

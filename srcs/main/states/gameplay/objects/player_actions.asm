@@ -17,14 +17,14 @@ attack::
 	ld a, [w_player_airborne]
 	or a
 	jr nz, .attack_check_down_jumping
-	ld a, 3
+	ld a, ATTACK_UP
 	ld [w_player_attacking], a
 	; Set no y flip
 	ld b, 0
 	jr .attack_set_attributes_y_slash
 	
 .attack_check_down_jumping
-	ld a, 4
+	ld a, ATTACK_DOWN
 	ld [w_player_attacking], a
 	; Set y flip
 	ld b, %01000000
@@ -35,7 +35,7 @@ attack::
 	ld a, [w_cur_keys]
 	and PADF_LEFT
 	jr z, .attack_check_right
-	ld a, 2
+	ld a, ATTACK_LEFT
 	ld [w_player_attacking], a
 	; Set x flip
 	ld a, %00100000
@@ -46,7 +46,7 @@ attack::
 	ld a, [w_cur_keys]
 	and PADF_RIGHT
 	jr z, .attack_check_up
-	ld a, 1
+	ld a, ATTACK_RIGHT
 	ld [w_player_attacking], a
 	; Set no x flip
 	xor a
@@ -57,7 +57,7 @@ attack::
 	ld a, [w_cur_keys]
 	and PADF_UP
 	jr z, .attack_no_dir
-	ld a, 3
+	ld a, ATTACK_UP
 	ld [w_player_attacking], a
 	; Set no y flip
 	ld b, 0
@@ -71,14 +71,14 @@ attack::
 	jr z, .attack_no_dir_flip_right
 .attack_no_dir_flip_left
 	; Set w_player_attacking to 2 (left)
-	ld a, 2
+	ld a, ATTACK_LEFT
 	ld [w_player_attacking], a
 	; Set x flip
 	ld a, %00100000
 	jr .attack_set_attributes_x_slash
 .attack_no_dir_flip_right
 	; Set w_player_attacking to 1 (right)
-	ld a, 1
+	ld a, ATTACK_RIGHT
 	ld [w_player_attacking], a
 	; Set no x flip
 	xor a
