@@ -7,7 +7,6 @@ w_player_position_x::		db
 w_player_position_y::		db
 
 w_player_jumping::			db
-w_player_jump_cut::			db
 w_player_airborne::			db
 w_player_velocity::			db
 w_player_jump_strenght::	db
@@ -15,22 +14,25 @@ w_player_gravity_accu::		db ; The accumulator is used to travel by GRAVITY every
 
 w_player_attacking::		db ; 0 = not attacking, 1 = attacking right, 2 = left, 3 = up, 4 = down (see constants)
 
-SECTION "Counters", WRAM0
 
-w_frame_counter_walk::		db
-w_frame_counter_attack::	db
+SECTION "PlayerCounters", WRAM0
+
+w_player_counter_walk::		db
+w_player_counter_attack::	db
 w_player_counter_jump::		db ; Used to start the falling animation a bit later
 
+
 SECTION "Player", ROM0
-knight_tile_data: INCBIN "resources/sprites.2bpp"
-knight_tile_data_end:
+
+player_tile_data: INCBIN "resources/sprites_player.2bpp"
+player_tile_data_end:
+
 
 initialize_player::
 	xor a
-	ld [w_frame_counter_walk], a
-	ld [w_frame_counter_attack], a
+	ld [w_player_counter_walk], a
+	ld [w_player_counter_attack], a
 	ld [w_player_jumping], a
-	ld [w_player_jump_cut], a
 	ld [w_player_airborne], a
 	ld [w_player_velocity], a
 	ld [w_player_gravity_accu], a
@@ -43,9 +45,9 @@ initialize_player::
     ld [w_player_position_y], a
 
     ; Copy the player's tile data into VRAM
-    ld de, knight_tile_data
+    ld de, player_tile_data
     ld hl, PLAYER_TILES_START
-    ld bc, knight_tile_data_end - knight_tile_data
+    ld bc, player_tile_data_end - player_tile_data
     call copy_de_into_memory_at_hl
 
 	; Set knight_top
@@ -117,7 +119,7 @@ initialize_player::
 
 update_player::
 
-update_player_handle_input:
+.update_player_handle_input
 	ld a, [w_cur_keys]
 	and PADF_UP
 	call nz, start_jump
@@ -163,12 +165,12 @@ draw_player:
 	ld a, [w_player_position_y]
 	ld [wShadowOAM], a
 	add a, 8
-	ld [wShadowOAM + 4], a
+	ld [wShadowOAM + $04], a
 
 	; Update X position in OAM
 	ld a, [w_player_position_x]
 	ld [wShadowOAM + 1], a
-	ld [wShadowOAM + 5], a
+	ld [wShadowOAM + $04 + 1], a
 
 	; Check if player is jumping or airborne, if so animate jump
 	ld a, [w_player_jumping]
@@ -192,7 +194,7 @@ draw_attack:
 	or a
 	ret z
 
-	ld a, [w_frame_counter_attack]
+	ld a, [w_player_counter_attack]
 	cp AFTER_EFFECT_TIME + 1 ; Check if we're past the attack animation
 	jr c, .draw_attack_animate
 	cp ATTACK_COOLDOWN + 1 ; Check if we're past the cooldown
@@ -200,7 +202,7 @@ draw_attack:
 
 	; Reset attack vars
 	xor a
-	ld [w_frame_counter_attack], a
+	ld [w_player_counter_attack], a
 	ld [w_player_attacking], a
 	ret
 
@@ -217,8 +219,8 @@ draw_attack:
 	jp animate_attack_end
 
 .done::
-	; Increase w_frame_counter_attack
-	ld a, [w_frame_counter_attack]
+	; Increase w_player_counter_attack
+	ld a, [w_player_counter_attack]
 	inc a
-	ld [w_frame_counter_attack], a
+	ld [w_player_counter_attack], a
 	ret

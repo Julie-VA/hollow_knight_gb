@@ -8,7 +8,7 @@ vblank_interrupt:
 
 	reti
 
-	; This is useful if we need to do something during VBlank
+	; This is useful if we need to do something extensive during VBlank
 	; push af
 	; push bc
 	; push de

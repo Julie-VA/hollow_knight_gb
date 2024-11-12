@@ -4,6 +4,7 @@ SECTION "GameplayState", ROM0
 
 init_gameplay_state::
 	call initialize_player
+	call initialize_enemies
 	call initialize_background
 
 	call init_vblank_interrupt
@@ -26,6 +27,7 @@ update_gameplay_state::
 	call ResetShadowOAM
 
 	call update_player
+	call update_enemies
 
 	halt
 

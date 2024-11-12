@@ -2,7 +2,8 @@ INCLUDE "srcs/main/utils/hardware.inc"
 
 RSRESET
 DEF sprites_tiles_start	RB _VRAM
-DEF PLAYER_TILES_START	RB 4*16
+DEF PLAYER_TILES_START	RB 16*16
+DEF ENEMIES_TILES_START	RB 6*16
 
 DEF PLAYER_MOVE_SPEED	EQU 1
 
@@ -29,3 +30,22 @@ DEF PLAYER_IDLE			EQU 1
 DEF PLAYER_WALK_START	EQU 2
 DEF PLAYER_WALK_END		EQU 3 ; Second walking frame and falling frame are the same
 DEF PLAYER_FALLING		EQU 3
+
+; Enemies
+DEF CRAWLID			EQU 0
+DEF CRAWLID_HEALTH	EQU 8
+DEF CRAWLID_SPEED	EQU 1
+DEF VENGEFLY		EQU 1
+DEF VENGEFLY_HEALTH	EQU 8
+DEF VENGEFLY_SPEED	EQU 1
+
+DEF MAX_ENEMY_COUNT	EQU 2
+
+RSRESET
+DEF enemy_active_byte		RB 1
+DEF enemy_y_byte			RB 1
+DEF enemy_x_byte			RB 1
+DEF enemy_health_byte		RB 1
+DEF enemy_type_byte			RB 1
+DEF enemy_end_byte			RB 1 ; 0 = end of the struct, 1 = there is another enemy after
+DEF PER_ENEMY_BYTES_COUNT	RB 0

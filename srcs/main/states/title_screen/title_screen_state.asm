@@ -1,5 +1,4 @@
 INCLUDE "srcs/main/utils/hardware.inc"
-INCLUDE "srcs/main/utils/text-macros.inc"
 
 SECTION "TitleScreenState", ROM0
  

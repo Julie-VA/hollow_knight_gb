@@ -279,9 +279,9 @@ animate_walk::
 	cp PLAYER_IDLE
 	jr z, .animate_walk_update_frame
 	; Wait 10 frames before updating the walk animation
-	ld a, [w_frame_counter_walk]
+	ld a, [w_player_counter_walk]
 	inc a
-	ld [w_frame_counter_walk], a
+	ld [w_player_counter_walk], a
 	cp 10 ; Every 10 frames, update the animation frame
 	jr z, .animate_walk_update_frame
 	jp draw_player.done ; Else, ret
@@ -298,5 +298,5 @@ animate_walk::
 
 	; Reset the frame counter back to 0
 	xor a
-	ld [w_frame_counter_walk], a
+	ld [w_player_counter_walk], a
 	jp draw_player.done

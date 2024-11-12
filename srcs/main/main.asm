@@ -7,6 +7,7 @@ w_cur_keys:: db
 w_new_keys:: db
 w_game_state:: db
 
+
 SECTION "Header", ROM0[$100]
 
 	jp entry_point
