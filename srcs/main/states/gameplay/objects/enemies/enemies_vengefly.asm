@@ -4,18 +4,7 @@ INCLUDE "srcs/main/utils/constants.inc"
 SECTION "Vengefly", ROM0
 
 vengefly_ai::
-	; Restore current enemy address
-	ld h, d
-	ld l, e
-
-	ld bc, enemy_x_byte
-	add hl, bc
-	ld a, [hl]
+	ld a, [w_enemy_2_position_x]
 	inc a
-	ld [hl], a
-
-	; Restore current enemy address
-	ld h, d
-	ld l, e
-
-	jp enemies_ai.enemies_ai_loop_end
+	ld [w_enemy_2_position_x], a
+	ret
