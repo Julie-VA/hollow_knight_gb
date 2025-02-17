@@ -3,13 +3,12 @@ INCLUDE "srcs/main/utils/constants.inc"
 
 SECTION "EnemiesVariables", WRAM0
 
-w_enemy_1_active::		db
-w_enemy_1_position_x::	db
-w_enemy_1_position_y::	db
-w_enemy_1_type::		db
-w_enemy_1_health::		db
-
-w_enemy_1_accu::		db
+w_enemy_1_active::			db
+w_enemy_1_position_x_int::	db
+w_enemy_1_position_x_dec::	db
+w_enemy_1_position_y::		db
+w_enemy_1_type::			db
+w_enemy_1_health::			db
 
 w_enemy_2_active::		db
 w_enemy_2_position_x::	db
@@ -48,16 +47,16 @@ initialize_enemies::
 	ld a, 144
 	ld [w_enemy_1_position_y], a
 	; Set x_byte
-	ld a, 104
-	ld [w_enemy_1_position_x], a
+	ld a, 112
+	ld [w_enemy_1_position_x_int], a
+	xor a
+	ld [w_enemy_1_position_x_dec], a
 	; Set type_byte
 	ld a, CRAWLID
 	ld [w_enemy_1_type], a
 	; Set health_byte
 	ld a, CRAWLID_HEALTH
 	ld [w_enemy_1_health], a
-	xor a
-	ld [w_enemy_1_accu], a
 
 	; Set active_byte
 	ld a, 1
@@ -80,7 +79,7 @@ initialize_enemies::
 	; Set crawlid_l
 	ld a, [w_enemy_1_position_y]
 	ld b, a
-	ld a, [w_enemy_1_position_x]
+	ld a, [w_enemy_1_position_x_int]
 	ld c, a
 	ld d, $10
 	ld e, 0
@@ -89,7 +88,7 @@ initialize_enemies::
 	; Set crawlid_r
 	ld a, [w_enemy_1_position_y]
 	ld b, a
-	ld a, [w_enemy_1_position_x]
+	ld a, [w_enemy_1_position_x_int]
 	add 8
 	ld c, a
 	ld d, $11
@@ -149,14 +148,18 @@ update_enemies::
 
 
 enemies_ai:
-	ld a, [w_enemy_1_position_x]
-	ld b, a
+	; ld a, [w_enemy_1_position_x_int]
+	; ld b, a
+	; ld a, [w_enemy_1_position_x_dec]
+	; ld c, a
 	; Check if enemy_1 is active
 	ld a, [w_enemy_1_active]
 	or a
 	call nz, crawlid_ai
-	ld a, b
-	ld [w_enemy_1_position_x], a
+	; ld a, b
+	; ld [w_enemy_1_position_x_int], a
+	; ld a, c
+	; ld [w_enemy_1_position_x_dec], a
 
 	; Check if enemy_2 is active
 	ld a, [w_enemy_2_active]
@@ -179,36 +182,34 @@ draw_enemies:
 	jr z, .draw_enemies_right
 .draw_enemies_left
 	; Update X position in OAM
-	ld a, [w_enemy_1_position_x]
-	dec a ; Needed because position reflects the nose of crawlid and there's one blank pixel
+	ld a, [w_enemy_1_position_x_int]
 	ld [wShadowOAM + $38 + 1], a
 	add 8
 	ld [wShadowOAM + $3C + 1], a
 	jr .draw_enemies_cont
 .draw_enemies_right
 	; Update X position in OAM
-	ld a, [w_enemy_1_position_x]
-	inc a
+	ld a, [w_enemy_1_position_x_int]
 	ld [wShadowOAM + $38 + 1], a
 	sub 8
 	ld [wShadowOAM + $3C + 1], a
 
 .draw_enemies_cont
-	; Update enemy_2 position
-	; Update y pos
-	ld a, [w_enemy_2_position_y]
-	ld [wShadowOAM + $40], a
-	ld [wShadowOAM + $44], a
-	add 8
-	ld [wShadowOAM + $48], a
-	ld [wShadowOAM + $4C], a
+	; ; Update enemy_2 position
+	; ; Update y pos
+	; ld a, [w_enemy_2_position_y]
+	; ld [wShadowOAM + $40], a
+	; ld [wShadowOAM + $44], a
+	; add 8
+	; ld [wShadowOAM + $48], a
+	; ld [wShadowOAM + $4C], a
 
-	; Update x pos
-	ld a, [w_enemy_2_position_x]
-	ld [wShadowOAM + $40 + 1], a
-	ld [wShadowOAM + $48 + 1], a
-	add 8
-	ld [wShadowOAM + $44 + 1], a
-	ld [wShadowOAM + $4C + 1], a
+	; ; Update x pos
+	; ld a, [w_enemy_2_position_x]
+	; ld [wShadowOAM + $40 + 1], a
+	; ld [wShadowOAM + $48 + 1], a
+	; add 8
+	; ld [wShadowOAM + $44 + 1], a
+	; ld [wShadowOAM + $4C + 1], a
 
 	ret
