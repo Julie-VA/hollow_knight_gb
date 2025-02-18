@@ -44,10 +44,10 @@ initialize_enemies::
 	ld a, 1
 	ld [w_enemy_1_active], a
 	; Set y_byte
-	ld a, 144
+	ld a, 136
 	ld [w_enemy_1_position_y], a
 	; Set x_byte
-	ld a, 112
+	ld a, 32
 	ld [w_enemy_1_position_x_int], a
 	xor a
 	ld [w_enemy_1_position_x_dec], a
@@ -147,24 +147,15 @@ update_enemies::
 	ret
 
 
-enemies_ai:
-	; ld a, [w_enemy_1_position_x_int]
-	; ld b, a
-	; ld a, [w_enemy_1_position_x_dec]
-	; ld c, a
-	; Check if enemy_1 is active
+enemies_ai::
 	ld a, [w_enemy_1_active]
 	or a
 	call nz, crawlid_ai
-	; ld a, b
-	; ld [w_enemy_1_position_x_int], a
-	; ld a, c
-	; ld [w_enemy_1_position_x_dec], a
 
 	; Check if enemy_2 is active
-	ld a, [w_enemy_2_active]
-	or a
-	call nz, vengefly_ai
+	; ld a, [w_enemy_2_active]
+	; or a
+	; call nz, vengefly_ai
 
 	ret
 

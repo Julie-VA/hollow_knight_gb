@@ -44,6 +44,9 @@ check_collision_left_right::
 	ld h, a
 
 	; Get tile number from tilemap address
+	:ldh a, [rSTAT]
+	and STATF_BUSY
+	jr nz, :-
 	ld a, [hl]
 
 	; Check collision

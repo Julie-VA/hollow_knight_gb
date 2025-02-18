@@ -1,3 +1,5 @@
 xor a: sets a to 0
 
 or a: sets Z flag if a == 0, used as a faster cp 0 (1 vs 2 cycles)
+
+dec a: compare a to 1, sets Z flag if a == 1, used as a faster cp 1 if we don't care about a value (1 vs 2 cycles)

@@ -135,7 +135,7 @@ move_left::
 
 	call check_collision_left
 	; If we're going to hit a solid tile, don't move
-	cp 1
+	dec a
 	ret z
 
 	; Decrease the player's x position
@@ -155,7 +155,7 @@ move_right::
 
 	call check_collision_right
 	; If we're going to hit a solid tile, don't move
-	cp 1
+	dec a
 	ret z
 
 	; Increase the player's x position

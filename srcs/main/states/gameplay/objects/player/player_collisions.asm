@@ -7,7 +7,7 @@ SECTION "PlayerCollisions", ROM0
 check_collision_left::
 	; Load x position in b
 	ld a, [w_player_position_x]
-	sub 7 ; -8 Offset grid by 8; -1 Check incoming tile -> result = -7
+	sub 9 ; -8 Offset grid by 8; -1 Check incoming tile -> result = -9
 	ld b, a
 
 	; Load y position of bottom tile in c
@@ -16,12 +16,12 @@ check_collision_left::
 	ld c, a
 
 	call check_collision_left_right
-	cp 1
-	ret z
+	or a
+	ret nz
 
 	; Load x position in b
 	ld a, [w_player_position_x]
-	sub 7 ; -8 Offset grid by 8; -1 Check incoming tile -> result = -7
+	sub 9 ; -8 Offset grid by 8; -1 Check incoming tile -> result = -9
 	ld b, a
 
 	; Load y position of top tile in c
@@ -46,8 +46,8 @@ check_collision_right::
 	ld c, a
 
 	call check_collision_left_right
-	cp 1
-	ret z
+	or a
+	ret nz
 
 	; Load x position in b
 	ld a, [w_player_position_x]

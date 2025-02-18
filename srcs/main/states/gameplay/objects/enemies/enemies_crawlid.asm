@@ -3,8 +3,6 @@ INCLUDE "srcs/main/utils/constants.inc"
 
 SECTION "Crawlid", ROM0
 
-; @param b: X position integer of head tile
-; @param c: X position decimal of head tile
 crawlid_ai::
 	; Check if crawlid is moving left or right thanks to orientation of head (0 = left, %00100000 = right)
 	ld a, [wShadowOAM + $38 + 3]
@@ -13,16 +11,11 @@ crawlid_ai::
 	jr nz, .crawlid_ai_move_left
 	jr .crawlid_ai_move_right
 
-.crawlid_ai_move_left
-	; If reach 104, flip right
-	; ld a, b
-	; cp a, 104 - 1 ; -1 because we want the nose of the crawlid to touch the edge
-	; jr z, .crawlid_ai_flip_right
-
+.crawlid_ai_move_left::
 	call crawlid_check_collision_left
-	; If we're going to hit a solid tile, don't move
-	cp 1
-	jr z, .crawlid_ai_flip_right
+	; If we're going to hit a solid tile, turn around
+	or a
+	jr nz, .crawlid_ai_flip_right
 
 	; Increment decimal
 	ld a, [w_enemy_1_position_x_dec]
@@ -37,16 +30,11 @@ crawlid_ai::
 
 	ret
 
-.crawlid_ai_move_right
-	; if reach 160, flip left
-	; ld a, b
-	; cp a, 160 + 1 ; +1 because we want the nose of the crawlid to touch the edge
-	; jr nc, .crawlid_ai_flip_left
-
+.crawlid_ai_move_right::
 	call crawlid_check_collision_right
-	; If we're going to hit a solid tile, don't move
-	cp 1
-	jr z, .crawlid_ai_flip_left
+	; If we're going to hit a solid tile, turn around
+	or a
+	jr nz, .crawlid_ai_flip_left
 
 	; Increment decimal
 	ld a, [w_enemy_1_position_x_dec]
