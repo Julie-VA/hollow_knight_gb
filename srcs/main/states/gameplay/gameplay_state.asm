@@ -12,6 +12,9 @@ init_gameplay_state::
 	; Turn the LCD on
 	ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON | LCDCF_BG9800
 	ld [rLCDC], a
+	; Set up sprite palette
+	ld a, %10010011
+	ld [rOBP0], a
 
 	ret
 

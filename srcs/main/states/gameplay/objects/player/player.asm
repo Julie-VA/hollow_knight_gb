@@ -39,7 +39,7 @@ initialize_player::
 	ld [w_player_counter_jump], a
 	ld [w_player_attacking], a
 
-	ld a, 16
+	ld a, 152
     ld [w_player_position_x], a
 	ld a, 136
     ld [w_player_position_y], a

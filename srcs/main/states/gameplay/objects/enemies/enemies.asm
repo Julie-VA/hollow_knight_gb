@@ -3,13 +3,6 @@ INCLUDE "srcs/main/utils/constants.inc"
 
 SECTION "EnemiesVariables", WRAM0
 
-w_enemy_1_active::			db
-w_enemy_1_position_x_int::	db
-w_enemy_1_position_x_dec::	db
-w_enemy_1_position_y::		db
-w_enemy_1_type::			db
-w_enemy_1_health::			db
-
 w_enemy_2_active::		db
 w_enemy_2_position_x::	db
 w_enemy_2_position_y::	db
@@ -40,23 +33,7 @@ initialize_enemies::
     ld bc, enemies_tile_data_end - enemies_tile_data
     call copy_de_into_memory_at_hl
 
-	; Set active_byte
-	ld a, 1
-	ld [w_enemy_1_active], a
-	; Set y_byte
-	ld a, 136
-	ld [w_enemy_1_position_y], a
-	; Set x_byte
-	ld a, 32
-	ld [w_enemy_1_position_x_int], a
-	xor a
-	ld [w_enemy_1_position_x_dec], a
-	; Set type_byte
-	ld a, CRAWLID
-	ld [w_enemy_1_type], a
-	; Set health_byte
-	ld a, CRAWLID_HEALTH
-	ld [w_enemy_1_health], a
+	call initialize_crawlid
 
 	; Set active_byte
 	ld a, 1
@@ -75,25 +52,6 @@ initialize_enemies::
 	ld [w_enemy_2_health], a
 	xor a
 	ld [w_enemy_2_accu], a
-
-	; Set crawlid_l
-	ld a, [w_enemy_1_position_y]
-	ld b, a
-	ld a, [w_enemy_1_position_x_int]
-	ld c, a
-	ld d, $10
-	ld e, 0
-	call RenderSimpleSprite
-
-	; Set crawlid_r
-	ld a, [w_enemy_1_position_y]
-	ld b, a
-	ld a, [w_enemy_1_position_x_int]
-	add 8
-	ld c, a
-	ld d, $11
-	ld e, 0
-	call RenderSimpleSprite
 
 	; Set vengefly_ul
 	ld a, [w_enemy_2_position_y]
@@ -142,13 +100,15 @@ initialize_enemies::
 
 
 update_enemies::
-	call enemies_ai
-	call draw_enemies
+	ld a, [w_crawlid_active]
+	or a
+	call nz, update_crawlid
+
 	ret
 
 
 enemies_ai::
-	ld a, [w_enemy_1_active]
+	ld a, [w_crawlid_active]
 	or a
 	call nz, crawlid_ai
 
@@ -160,32 +120,6 @@ enemies_ai::
 	ret
 
 draw_enemies:
-	; Update enemy_1 position
-	; Update Y position in OAM
-	ld a, [w_enemy_1_position_y]
-	ld [wShadowOAM + $38], a
-	ld [wShadowOAM + $3C], a
-
-	; Check what direction we're going first
-	ld a, [wShadowOAM + $38 + 3]
-	and %00100000 ; Only the x flip bit is useful for this
-	cp %00100000
-	jr z, .draw_enemies_right
-.draw_enemies_left
-	; Update X position in OAM
-	ld a, [w_enemy_1_position_x_int]
-	ld [wShadowOAM + $38 + 1], a
-	add 8
-	ld [wShadowOAM + $3C + 1], a
-	jr .draw_enemies_cont
-.draw_enemies_right
-	; Update X position in OAM
-	ld a, [w_enemy_1_position_x_int]
-	ld [wShadowOAM + $38 + 1], a
-	sub 8
-	ld [wShadowOAM + $3C + 1], a
-
-.draw_enemies_cont
 	; ; Update enemy_2 position
 	; ; Update y pos
 	; ld a, [w_enemy_2_position_y]
