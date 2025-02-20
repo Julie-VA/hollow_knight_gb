@@ -10,10 +10,18 @@ w_vengefly_position_y::		db
 w_vengefly_type::			db
 w_vengefly_health::			db
 
+w_vengefly_direction::		db ; 0 = left, 1 = right, 2 = up, 3 = down
+w_vengefly_counter::		db
+
 
 SECTION "Vengefly", ROM0
 
 initialize_vengefly::
+	xor a
+	ld [w_vengefly_direction], a
+	ld a, VENGEFLY_IDLE_WAIT_LENGTH
+	ld [w_vengefly_counter], a
+
 	; Set active_byte
 	ld a, 1
 	ld [w_vengefly_active], a
@@ -74,10 +82,12 @@ initialize_vengefly::
 
 	ret
 
+
 update_vengefly::
 	call vengefly_ai
 	call draw_vengefly
 	ret
+
 
 vengefly_ai:
 	; Check if player is within 48 pixels radius
@@ -89,7 +99,7 @@ vengefly_ai:
 	inc a
 .vengefly_ai_absolute_x
 	cp 48
-	jr nc, .vengefly_ai_outside_radius
+	jr nc, vengefly_ai_idle
 
 	ld a, [w_player_position_y]
 	ld hl, w_vengefly_position_y
@@ -99,53 +109,89 @@ vengefly_ai:
 	inc a
 .vengefly_ai_absolute_y
 	cp 48
-	jr nc, .vengefly_ai_outside_radius
+	jr nc, vengefly_ai_idle
 
 	; If we reach here, that means the player is within the radius.
-	ld a, [w_vengefly_position_x_int]
-	dec a
-	ld [w_vengefly_position_x_int], a
+	; ld a, [w_vengefly_position_x_int]
+	; dec a
+	; ld [w_vengefly_position_x_int], a
 	ret
 
 
-.vengefly_ai_outside_radius
-	; If the player is outside the radius, the vengefly will randomly move a little in one of the 4 directions
-	; Generate pseudo random number
+; If the player is outside the radius, the vengefly will randomly move a little in one of the 4 directions and stop in between each movement
+vengefly_ai_idle:
+	; Check if we should wait or move
+	ld a, [w_vengefly_counter]
+	cp VENGEFLY_IDLE_MOV_LENGTH
+	jr c, .vengefly_ai_idle_move ; If counter < VENGEFLY_IDLE_MOV_LENGTH, move
+
+	; Increment counter
+	ld a, [w_vengefly_counter]
+	inc a
+	ld [w_vengefly_counter], a
+	; Else, wait before resetting counter and moving again
+	cp VENGEFLY_IDLE_WAIT_LENGTH
+	ret c
+
+	xor a
+	ld [w_vengefly_counter], a
+
+	; Generate new direction with pseudo random number
 	ld a, [rDIV]
-	and %00000011 ; Only keep last 2 bits since we want 4 options
-	cp 0
-	jr z, .vengefly_ai_outside_radius_move_left
+	sla a
+	jr nc, :+
+	xor $1D
+	:and %00000011 ; Only keep last 2 bits since we want 4 options
+	ld [w_vengefly_direction], a
+
+.vengefly_ai_idle_move
+	; Increment decimal
+	ld a, [w_vengefly_position_x_dec]
+	add 64 ; Add 0.25
+	ld [w_vengefly_position_x_dec], a
+	; Increment integer if carry
+	ret nc
+
+	; Increment counter
+	ld a, [w_vengefly_counter]
+	inc a
+	ld [w_vengefly_counter], a
+
+	; Go to right code depending on direction
+	ld a, [w_vengefly_direction]
+	or a
+	jr z, .vengefly_ai_idle_move_left
 	cp 1
-	jr z, .vengefly_ai_outside_radius_move_right
+	jr z, .vengefly_ai_idle_move_right
 	cp 2
-	jr z, .vengefly_ai_outside_radius_move_up
+	jr z, .vengefly_ai_idle_move_up
 	cp 3
-	jr z, .vengefly_ai_outside_radius_move_down
+	jr z, .vengefly_ai_idle_move_down
 
-.vengefly_ai_outside_radius_move_left
+.vengefly_ai_idle_move_left
 	ld a, [w_vengefly_position_x_int]
 	dec a
 	ld [w_vengefly_position_x_int], a
 	ret
 
-.vengefly_ai_outside_radius_move_right
+.vengefly_ai_idle_move_right
 	ld a, [w_vengefly_position_x_int]
 	inc a
 	ld [w_vengefly_position_x_int], a
 	ret
 
-.vengefly_ai_outside_radius_move_up
+.vengefly_ai_idle_move_up
 	ld a, [w_vengefly_position_y]
 	dec a
 	ld [w_vengefly_position_y], a
 	ret
 
-.vengefly_ai_outside_radius_move_down
+.vengefly_ai_idle_move_down
 	ld a, [w_vengefly_position_y]
 	inc a
 	ld [w_vengefly_position_y], a
 	ret
-	
+
 
 draw_vengefly:
 	; Update vengefly position

@@ -77,7 +77,7 @@ crawlid_ai:
 
 	; Increment decimal
 	ld a, [w_crawlid_position_x_dec]
-	add $80 ; Add 0.5
+	add 128 ; Add 0.5
 	ld [w_crawlid_position_x_dec], a
 
 	; Increment integer
