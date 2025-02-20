@@ -34,67 +34,7 @@ initialize_enemies::
     call copy_de_into_memory_at_hl
 
 	call initialize_crawlid
-
-	; Set active_byte
-	ld a, 1
-	ld [w_enemy_2_active], a
-	; Set y_byte
-	ld a, 32
-	ld [w_enemy_2_position_y], a
-	; Set x_byte
-	ld a, 48
-	ld [w_enemy_2_position_x], a
-	; Set type_byte
-	ld a, VENGEFLY
-	ld [w_enemy_2_type], a
-	; Set health_byte
-	ld a, VENGEFLY_HEALTH
-	ld [w_enemy_2_health], a
-	xor a
-	ld [w_enemy_2_accu], a
-
-	; Set vengefly_ul
-	ld a, [w_enemy_2_position_y]
-	ld b, a
-	ld a, [w_enemy_2_position_x]
-	ld c, a
-	ld d, $12
-	ld e, 0
-	call RenderSimpleSprite
-	dec hl
-
-	; Set vengefly_ur
-	ld a, [w_enemy_2_position_y]
-	ld b, a
-	ld a, [w_enemy_2_position_x]
-	add 8
-	ld c, a
-	ld d, $13
-	ld e, 0
-	call RenderSimpleSprite
-	dec hl
-
-	; Set vengefly_dl
-	ld a, [w_enemy_2_position_y]
-	add 8
-	ld b, a
-	ld a, [w_enemy_2_position_x]
-	ld c, a
-	ld d, $14
-	ld e, 0
-	call RenderSimpleSprite
-	dec hl
-
-	; Set vengefly_dr
-	ld a, [w_enemy_2_position_y]
-	add 8
-	ld b, a
-	ld a, [w_enemy_2_position_x]
-	add 8
-	ld c, a
-	ld d, $15
-	ld e, 0
-	call RenderSimpleSprite
+	call initialize_vengefly	
 
 	ret
 
@@ -104,37 +44,8 @@ update_enemies::
 	or a
 	call nz, update_crawlid
 
-	ret
-
-
-enemies_ai::
-	ld a, [w_crawlid_active]
+	ld a, [w_vengefly_active]
 	or a
-	call nz, crawlid_ai
-
-	; Check if enemy_2 is active
-	; ld a, [w_enemy_2_active]
-	; or a
-	; call nz, vengefly_ai
-
-	ret
-
-draw_enemies:
-	; ; Update enemy_2 position
-	; ; Update y pos
-	; ld a, [w_enemy_2_position_y]
-	; ld [wShadowOAM + $40], a
-	; ld [wShadowOAM + $44], a
-	; add 8
-	; ld [wShadowOAM + $48], a
-	; ld [wShadowOAM + $4C], a
-
-	; ; Update x pos
-	; ld a, [w_enemy_2_position_x]
-	; ld [wShadowOAM + $40 + 1], a
-	; ld [wShadowOAM + $48 + 1], a
-	; add 8
-	; ld [wShadowOAM + $44 + 1], a
-	; ld [wShadowOAM + $4C + 1], a
+	call nz, update_vengefly
 
 	ret

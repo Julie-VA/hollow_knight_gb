@@ -61,7 +61,7 @@ update_crawlid::
 
 
 
-crawlid_ai::
+crawlid_ai:
 	; Check if crawlid is moving left or right thanks to orientation of head (0 = left, %00100000 = right)
 	ld a, [wShadowOAM + $38 + 3]
 	and %00100000 ; Only the x flip bit is useful for this
@@ -69,7 +69,7 @@ crawlid_ai::
 	jr nz, .crawlid_ai_move_left
 	jr .crawlid_ai_move_right
 
-.crawlid_ai_move_left::
+.crawlid_ai_move_left
 	call crawlid_check_collision_left
 	; If we're going to hit a solid tile, turn around
 	or a
@@ -88,7 +88,7 @@ crawlid_ai::
 
 	ret
 
-.crawlid_ai_move_right::
+.crawlid_ai_move_right
 	call crawlid_check_collision_right
 	; If we're going to hit a solid tile, turn around
 	or a
