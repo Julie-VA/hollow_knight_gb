@@ -90,7 +90,7 @@ update_vengefly::
 
 
 vengefly_ai:
-	; Check if player is within 48 pixels radius
+	; Check if player is within VENGEFLY_RADIUS
 	ld a, [w_player_position_x]
 	ld hl, w_vengefly_position_x_int
 	sub [hl]
@@ -98,7 +98,7 @@ vengefly_ai:
 	cpl ; Else, invert bits and add 1 to get absolute value
 	inc a
 .vengefly_ai_absolute_x
-	cp 48
+	cp VENGEFLY_RADIUS
 	jr nc, vengefly_ai_idle
 
 	ld a, [w_player_position_y]
@@ -108,13 +108,39 @@ vengefly_ai:
 	cpl
 	inc a
 .vengefly_ai_absolute_y
-	cp 48
+	cp VENGEFLY_RADIUS
 	jr nc, vengefly_ai_idle
 
-	; If we reach here, that means the player is within the radius.
-	; ld a, [w_vengefly_position_x_int]
-	; dec a
-	; ld [w_vengefly_position_x_int], a
+	; If we reach here, that means the player is within the radius
+	jr vengefly_ai_target_player
+	ret
+
+
+vengefly_ai_target_player:
+	; Increment decimal
+	ld a, [w_vengefly_position_x_dec]
+	add THREE_PIXELS_EVERY_7F
+	ld [w_vengefly_position_x_dec], a
+	; Increment integer if carry
+	ret nc
+
+.check_x
+	ld a, [w_vengefly_position_x_int]
+	ld hl, w_player_position_x
+
+	cp [hl] ; Compare vengefly and player x positions
+	jr z, .check_y ; If equal, check y movement
+	call nc, vengefly_ai_move.left ; If vengefly X > player X, move left
+	call c, vengefly_ai_move.right ; If vengefly X < player X, move right
+
+.check_y
+	ld a, [w_vengefly_position_y]
+	ld hl, w_player_position_y
+
+	cp [hl] ; Compare vengefly and player y positions
+	ret z ; If equal, ret
+	call nc, vengefly_ai_move.up ; If vengefly Y > player Y, move up
+	call c, vengefly_ai_move.down ; If vengefly Y < player Y, move down
 	ret
 
 
@@ -137,17 +163,14 @@ vengefly_ai_idle:
 	ld [w_vengefly_counter], a
 
 	; Generate new direction with pseudo random number
-	ld a, [rDIV]
-	sla a
-	jr nc, :+
-	xor $1D
-	:and %00000011 ; Only keep last 2 bits since we want 4 options
+	call rand
+	and %00000011 ; Only keep last 2 bits since we want 4 options
 	ld [w_vengefly_direction], a
 
 .vengefly_ai_idle_move
 	; Increment decimal
 	ld a, [w_vengefly_position_x_dec]
-	add 64 ; Add 0.25
+	add ONE_PIXEL_EVERY_4F
 	ld [w_vengefly_position_x_dec], a
 	; Increment integer if carry
 	ret nc
@@ -160,33 +183,81 @@ vengefly_ai_idle:
 	; Go to right code depending on direction
 	ld a, [w_vengefly_direction]
 	or a
-	jr z, .vengefly_ai_idle_move_left
+	jr z, vengefly_ai_move.left
 	cp 1
-	jr z, .vengefly_ai_idle_move_right
+	jr z, vengefly_ai_move.right
 	cp 2
-	jr z, .vengefly_ai_idle_move_up
+	jr z, vengefly_ai_move.up
 	cp 3
-	jr z, .vengefly_ai_idle_move_down
+	jr z, vengefly_ai_move.down
 
-.vengefly_ai_idle_move_left
-	ld a, [w_vengefly_position_x_int]
+
+vengefly_ai_move:
+.left
+	call vengefly_check_collision_left
+	; If we're going to hit a solid tile, don't move
+	or a
+	ret nz
+
+	; Check x flip of sprite
+	ld a, [wShadowOAM + $4C + 3]
+	or a
+	jr z, :+
+
+	; If flipped, set to no flip
+	xor a
+	ld [wShadowOAM + $40 + 3], a
+	ld [wShadowOAM + $44 + 3], a
+	ld [wShadowOAM + $48 + 3], a
+	ld [wShadowOAM + $4C + 3], a
+
+	; Update x position to reflect position of the head
+	; ld a, [w_vengefly_position_x_int]
+	; sub 8
+	; ld [w_vengefly_position_x_int], a
+
+	:ld a, [w_vengefly_position_x_int]
 	dec a
 	ld [w_vengefly_position_x_int], a
+
 	ret
 
-.vengefly_ai_idle_move_right
-	ld a, [w_vengefly_position_x_int]
+.right
+	call vengefly_check_collision_left
+	; If we're going to hit a solid tile, don't move
+	or a
+	ret nz
+
+	; Check x flip of sprite
+	ld a, [wShadowOAM + $4C + 3]
+	or a
+	jr nz, :+
+
+	; If not flipped, set to flip
+	ld a, %00100000
+	ld [wShadowOAM + $40 + 3], a
+	ld [wShadowOAM + $44 + 3], a
+	ld [wShadowOAM + $48 + 3], a
+	ld [wShadowOAM + $4C + 3], a
+
+	; Update x position to reflect position of the head
+	; ld a, [w_vengefly_position_x_int]
+	; add 8
+	; ld [w_vengefly_position_x_int], a
+
+	:ld a, [w_vengefly_position_x_int]
 	inc a
 	ld [w_vengefly_position_x_int], a
+
 	ret
 
-.vengefly_ai_idle_move_up
+.up
 	ld a, [w_vengefly_position_y]
 	dec a
 	ld [w_vengefly_position_y], a
 	ret
 
-.vengefly_ai_idle_move_down
+.down
 	ld a, [w_vengefly_position_y]
 	inc a
 	ld [w_vengefly_position_y], a
@@ -203,11 +274,27 @@ draw_vengefly:
 	ld [wShadowOAM + $48], a
 	ld [wShadowOAM + $4C], a
 
+	; Check what direction we're going before updating X pos
+	ld a, [wShadowOAM + $4C + 3]
+	or a
+	jr nz, .draw_vengefly_right
+
+.draw_vengefly_left
 	; Update X position in OAM
 	ld a, [w_vengefly_position_x_int]
 	ld [wShadowOAM + $40 + 1], a
 	ld [wShadowOAM + $48 + 1], a
 	add 8
+	ld [wShadowOAM + $44 + 1], a
+	ld [wShadowOAM + $4C + 1], a
+	ret
+
+.draw_vengefly_right
+	; Update X position in OAM
+	ld a, [w_vengefly_position_x_int]
+	ld [wShadowOAM + $40 + 1], a
+	ld [wShadowOAM + $48 + 1], a
+	sub 8
 	ld [wShadowOAM + $44 + 1], a
 	ld [wShadowOAM + $4C + 1], a
 	ret

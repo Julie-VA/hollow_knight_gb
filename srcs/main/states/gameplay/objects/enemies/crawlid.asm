@@ -81,7 +81,7 @@ crawlid_ai:
 	ld [w_crawlid_position_x_dec], a
 
 	; Increment integer
-	jr nc, .crawlid_ai_done
+	ret nc
 	ld a, [w_crawlid_position_x_int]
 	dec a
 	ld [w_crawlid_position_x_int], a
@@ -100,7 +100,7 @@ crawlid_ai:
 	ld [w_crawlid_position_x_dec], a
 
 	; Increment integer
-	jr nc, .crawlid_ai_done
+	ret nc
 	ld a, [w_crawlid_position_x_int]
 	inc a
 	ld [w_crawlid_position_x_int], a
@@ -131,9 +131,6 @@ crawlid_ai:
 
 	ret
 
-.crawlid_ai_done
-	ret
-
 
 draw_crawlid:
 	; Update crawlid position
@@ -154,7 +151,7 @@ draw_crawlid:
 	ld [wShadowOAM + $38 + 1], a
 	add 8
 	ld [wShadowOAM + $3C + 1], a
-	jr .draw_crawlid_done
+	ret
 
 .draw_crawlid_right
 	; Update X position in OAM
@@ -162,6 +159,4 @@ draw_crawlid:
 	ld [wShadowOAM + $38 + 1], a
 	sub 8
 	ld [wShadowOAM + $3C + 1], a
-
-.draw_crawlid_done
 	ret
