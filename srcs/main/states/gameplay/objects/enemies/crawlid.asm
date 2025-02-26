@@ -112,7 +112,7 @@ crawlid_ai:
 	ld [wShadowOAM + $38 + 3], a
 	ld [wShadowOAM + $3C + 3], a
 
-	; Update b so w_crawlid_position_x_int can be updated
+	; Update x position to reflect position of the head
 	ld a, [w_crawlid_position_x_int]
 	add 7
 	ld [w_crawlid_position_x_int], a
@@ -124,7 +124,7 @@ crawlid_ai:
 	ld [wShadowOAM + $38 + 3], a
 	ld [wShadowOAM + $3C + 3], a
 
-	; Update b so w_crawlid_position_x_int can be updated
+	; Update x position to reflect position of the head
 	ld a, [w_crawlid_position_x_int]
 	sub 7
 	ld [w_crawlid_position_x_int], a

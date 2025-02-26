@@ -11,7 +11,7 @@ SECTION "Collisions", ROM0
 ; 2 (implemented): Set last 3 bits of y position to 0 (same as dividing since we multiply after), and multiply by 4 to get tile y position. Then add tile x position
 ; 3: Add $98 to high byte to get the tilemap address
 ; 4: Get tile number from tilemap address
-check_collision_left_right::
+check_collision::
 	; Load x position in a
 	ld a, b
 
@@ -43,7 +43,7 @@ check_collision_left_right::
 	add a, $98
 	ld h, a
 
-	; Get tile number from tilemap address
+	; Get tile number from tilemap address (wait for VRAM to be ready for read first)
 	:ldh a, [rSTAT]
 	and STATF_BUSY
 	jr nz, :-
@@ -51,12 +51,12 @@ check_collision_left_right::
 
 	; Check collision
 	or a
-	jr nz, .check_collision_left_right_hit
+	jr nz, .check_collision_hit
 
-.check_collision_left_right_no_hit
+.check_collision_no_hit
 	xor a
 	ret
 
-.check_collision_left_right_hit
+.check_collision_hit
 	ld a, 1
 	ret

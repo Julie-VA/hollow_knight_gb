@@ -3,6 +3,7 @@ INCLUDE "srcs/main/utils/constants.inc"
 
 SECTION "VengeflyVariables", WRAM0
 
+; The vengefly's position always reflects the top left pixel of the top left sprite. So when the sprite is flipped, the position is now at the top left pixel of the top right sprite (+8).
 w_vengefly_active::			db
 w_vengefly_position_x_int::	db
 w_vengefly_position_x_dec::	db
@@ -26,10 +27,12 @@ initialize_vengefly::
 	ld a, 1
 	ld [w_vengefly_active], a
 	; Set y_byte
-	ld a, 32
+	; ld a, 32
+	ld a, 26
 	ld [w_vengefly_position_y], a
 	; Set x_byte
 	ld a, 48
+	; ld a, 64
 	ld [w_vengefly_position_x_int], a
 	xor a
 	ld [w_vengefly_position_x_dec], a
@@ -84,8 +87,27 @@ initialize_vengefly::
 
 
 update_vengefly::
+	; call test_code
+
 	call vengefly_ai
 	call draw_vengefly
+	ret
+
+
+test_code:
+	; ld a, %00100000
+	; ld [wShadowOAM + $40 + 3], a
+	; ld [wShadowOAM + $44 + 3], a
+	; ld [wShadowOAM + $48 + 3], a
+	; ld [wShadowOAM + $4C + 3], a
+
+	call vengefly_check_collision_down
+	or a
+	ret nz
+
+	ld a, [w_vengefly_position_y]
+	inc a
+	ld [w_vengefly_position_y], a
 	ret
 
 
@@ -202,7 +224,17 @@ vengefly_ai_move:
 	; Check x flip of sprite
 	ld a, [wShadowOAM + $4C + 3]
 	or a
-	jr z, :+
+	jr z, :++
+
+	; Check if we're past half the player before turning around. Necessary since we're updating the position after flipping, the sprite is 16p wide and no security would make vengefly turn around constantly when going straight up or down on player
+	ld a, [w_vengefly_position_x_int]
+	ld hl, w_player_position_x
+	sub [hl]
+	jr nc, :+
+	cpl
+	inc a
+	:cp 5
+	jr c, :+
 
 	; If flipped, set to no flip
 	xor a
@@ -211,11 +243,6 @@ vengefly_ai_move:
 	ld [wShadowOAM + $48 + 3], a
 	ld [wShadowOAM + $4C + 3], a
 
-	; Update x position to reflect position of the head
-	; ld a, [w_vengefly_position_x_int]
-	; sub 8
-	; ld [w_vengefly_position_x_int], a
-
 	:ld a, [w_vengefly_position_x_int]
 	dec a
 	ld [w_vengefly_position_x_int], a
@@ -223,7 +250,7 @@ vengefly_ai_move:
 	ret
 
 .right
-	call vengefly_check_collision_left
+	call vengefly_check_collision_right
 	; If we're going to hit a solid tile, don't move
 	or a
 	ret nz
@@ -231,7 +258,17 @@ vengefly_ai_move:
 	; Check x flip of sprite
 	ld a, [wShadowOAM + $4C + 3]
 	or a
-	jr nz, :+
+	jr nz, :++
+
+	; Check if we're past half the player before turning around. Necessary since we're updating the position after flipping, the sprite is 16p wide and no security would make vengefly turn around constantly when going straight up or down on player
+	ld a, [w_vengefly_position_x_int]
+	ld hl, w_player_position_x
+	sub [hl]
+	jr nc, :+
+	cpl
+	inc a
+	:cp 5
+	jr c, :+
 
 	; If not flipped, set to flip
 	ld a, %00100000
@@ -240,11 +277,6 @@ vengefly_ai_move:
 	ld [wShadowOAM + $48 + 3], a
 	ld [wShadowOAM + $4C + 3], a
 
-	; Update x position to reflect position of the head
-	; ld a, [w_vengefly_position_x_int]
-	; add 8
-	; ld [w_vengefly_position_x_int], a
-
 	:ld a, [w_vengefly_position_x_int]
 	inc a
 	ld [w_vengefly_position_x_int], a
@@ -252,12 +284,22 @@ vengefly_ai_move:
 	ret
 
 .up
+	call vengefly_check_collision_up
+	; If we're going to hit a solid tile, don't move
+	or a
+	ret nz
+
 	ld a, [w_vengefly_position_y]
 	dec a
 	ld [w_vengefly_position_y], a
 	ret
 
 .down
+	call vengefly_check_collision_down
+	; If we're going to hit a solid tile, don't move
+	or a
+	ret nz
+
 	ld a, [w_vengefly_position_y]
 	inc a
 	ld [w_vengefly_position_y], a

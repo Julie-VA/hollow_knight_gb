@@ -14,7 +14,7 @@ crawlid_check_collision_left::
 	sub 16 ; Offset grid by 16
 	ld c, a
 
-	call check_collision_left_right
+	call check_collision
 	or a
 	ret nz
 
@@ -29,9 +29,8 @@ crawlid_check_collision_left::
 	sub 8 ; -16 Offset grid by 16; +8 Check tile below incoming tile -> result = -8
 	ld c, a
 
-	call check_collision_left_right
+	call check_collision
 	xor 1 ; Toggle between 0 and 1, if call returns 0 it's a blank tile so we're walking off a ledge
-
 	ret
 
 
@@ -46,7 +45,7 @@ crawlid_check_collision_right::
 	sub 16 ; Offset grid by 16
 	ld c, a
 
-	call check_collision_left_right
+	call check_collision
 	or a
 	ret nz
 	
@@ -61,7 +60,6 @@ crawlid_check_collision_right::
 	sub 8 ; -16 Offset grid by 16; +8 Check tile below incoming tile -> result = -8
 	ld c, a
 
-	call check_collision_left_right
+	call check_collision
 	xor 1 ; Toggle between 0 and 1, if call returns 0 it's a blank tile so we're walking off a ledge
-
 	ret
