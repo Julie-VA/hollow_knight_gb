@@ -1,5 +1,4 @@
 INCLUDE "srcs/main/utils/hardware.inc"
-; INCLUDE "libs/input.asm"
 
 SECTION "InputUtilsVariables", WRAM0
 
@@ -7,12 +6,15 @@ m_wait_key:: db
 
 SECTION "InputUtils", ROM0
 
-wait_for_key_function::
+wait_for_key_title::
     ; Save our original value
     push bc
 	
-wait_for_key_function_loop:
-	; save the keys last frame
+wait_for_key_title_loop:
+	; Play OST
+	call hUGE_dosound
+
+	; Save the keys last frame
 	ld a, [w_cur_keys]
 	ld [w_last_keys], a
     
@@ -26,24 +28,17 @@ wait_for_key_function_loop:
     ld b, a
 	ld a, [w_cur_keys]
     and b
-    jp z, wait_for_key_function_not_pressed
-    
+    jp z, wait_for_key_title_not_pressed
+
 	ld a, [w_last_keys]
     and b
-    jp nz, wait_for_key_function_not_pressed
+    jp nz, wait_for_key_title_not_pressed
 
 	; restore our original value
 	pop bc
 
     ret
 
-wait_for_key_function_not_pressed:
-    ; Wait a small amount of time
-    ; Save our count in this variable
-    ld a, 1
-    ld [w_vblank_count], a
-
-    ; Call our function that performs the code
-    call wait_vblank
-
-    jp wait_for_key_function_loop
+wait_for_key_title_not_pressed:
+	halt
+    jp wait_for_key_title_loop

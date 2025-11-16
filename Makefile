@@ -2,6 +2,7 @@ NAME		= hollow_knight
 SRCS_DIR	= srcs
 LIB_DIR		= libs
 ASM_DIR		= $(SRCS_DIR)/main
+AUDIO_DIR	= resources/audio
 OBJ_DIR		= obj
 BINS		= $(NAME).gb
 
@@ -27,7 +28,7 @@ unique = $(if $1,\
 		)
 
 ASM_SOURCES_COLLECTED = \
-			$(call rwildcard,$(ASM_DIR),*.asm) $(call rwildcard,$(LIB_DIR),*.asm)
+			$(call rwildcard,$(ASM_DIR),*.asm) $(call rwildcard,$(LIB_DIR),*.asm) $(call rwildcard,$(AUDIO_DIR),*.asm)
 
 OBJS = $(patsubst %.asm,$(OBJ_DIR)/%.o,$(notdir $(ASM_SOURCES_COLLECTED)))
 

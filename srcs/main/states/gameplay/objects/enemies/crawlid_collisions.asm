@@ -19,10 +19,7 @@ crawlid_check_collision_left::
 	ret nz
 
 	; Check if we're going to walk over a ledge
-	; Load x position in b
-	ld a, [w_crawlid_position_x_int]
-	sub 8 ; -8 Offset grid by 8; +1 Account for blank pixel in sprite; -1 Check incoming tile -> result = -8
-	ld b, a
+	; x position already in b
 
 	; Load y position in c
 	ld a, [w_crawlid_position_y]
@@ -50,10 +47,7 @@ crawlid_check_collision_right::
 	ret nz
 	
 	; Check if we're going to walk over a ledge
-	; Load x position in b
-	ld a, [w_crawlid_position_x_int]
-	dec a; -8 Offset grid by 8; +7 Go to the end of the sprite; -1 Account for blank pixel in sprite; +1 Check incoming tile -> result = -1
-	ld b, a
+	; x position already in b
 
 	; Load y position in c
 	ld a, [w_crawlid_position_y]

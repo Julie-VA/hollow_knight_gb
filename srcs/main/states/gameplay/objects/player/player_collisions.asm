@@ -19,10 +19,7 @@ check_collision_left::
 	or a
 	ret nz
 
-	; Load x position in b
-	ld a, [w_player_position_x]
-	sub 9 ; -8 Offset grid by 8; -1 Check incoming tile -> result = -9
-	ld b, a
+	; x position already in b
 
 	; Load y position of top tile in c
 	ld a, [w_player_position_y]
@@ -49,10 +46,7 @@ check_collision_right::
 	or a
 	ret nz
 
-	; Load x position in b
-	ld a, [w_player_position_x]
-	; -8 Offset grid by 8; +7 Go to the end of the sprite; +1 Check incoming tile -> result = 0
-	ld b, a
+	; x position already in b
 
 	; Load y position of top tile in c
 	ld a, [w_player_position_y]
@@ -83,10 +77,7 @@ check_collision_up::
 	dec a ; -8 Offset grid by 8; +7 Go to the end of the sprite -> result = -1
 	ld b, a
 
-	; Load y position in c
-	ld a, [w_player_position_y]
-	sub 17 ; -16 Offset grid by 16; -1 Check incoming tile -> result = -17
-	ld c, a
+	; y position already in c
 
 	call check_collision
 	ret
@@ -112,10 +103,7 @@ check_collision_down::
 	sub 3 ; +8 Offset grid by 8; +5 Go to back foot of sprite from right side -> result = -3
 	ld b, a
 
-	; Load y position in c
-	ld a, [w_player_position_y]
-	; -16 Offset grid by 16; +8 Check at the feet of player; +7 Go to the end of the sprite; +1 Check incoming tile -> result = 0
-	ld c, a
+	; y position already in c
 
 	call check_collision
 	ret

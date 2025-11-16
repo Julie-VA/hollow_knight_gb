@@ -1,9 +1,5 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 
-SECTION "VBlankVariables", WRAM0
-
-w_vblank_count:: db
-
 SECTION "VBlank functions", ROM0
 
 wait_vblank::

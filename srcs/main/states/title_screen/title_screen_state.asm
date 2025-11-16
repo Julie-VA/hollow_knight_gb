@@ -19,6 +19,22 @@ init_title_screen_state::
 	ld a, %00011011
 	ld [rBGP], a
 
+	; Enable sound globally
+	ld a, $80
+	ld [rAUDENA], a
+	; Enable all channels in stereo
+	ld a, $FF
+	ld [rAUDTERM], a
+	; Set volume
+	ld a, $77
+	ld [rAUDVOL], a
+
+	; Init song
+	ld hl, OST_title
+	call hUGE_init
+
+	call init_vblank_interrupt
+
     ret
 
 draw_title_screen::
@@ -36,11 +52,11 @@ draw_title_screen::
 
 update_title_screen_state::
     ; Save the passed value into the variable: m_wait_key
-    ; The wait_for_key_function always checks against this vriable
+    ; wait_for_key_title always checks against this variable
     ld a, PADF_START
     ld [m_wait_key], a
 
-    call wait_for_key_function
+	call wait_for_key_title
 
 	; Reset
 	call clear_title_screen_tiles

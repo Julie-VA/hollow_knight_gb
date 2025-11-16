@@ -18,10 +18,7 @@ vengefly_check_collision_left::
 	or a
 	ret nz
 
-	; Load x position in b
-	ld a, [w_vengefly_position_x_int]
-	sub 9 ; -8 Offset grid by 8; -1 Check incoming tile -> result = -9
-	ld b, a
+	; x position already in b
 
 	; Load y position of top tile in c
 	ld a, [w_vengefly_position_y]
@@ -47,10 +44,7 @@ vengefly_check_collision_right::
 	or a
 	ret nz
 
-	; Load x position in b
-	ld a, [w_vengefly_position_x_int]
-	; -8 Offset grid by 8; +7 Go to the end of sprite; +1 Check incoming tile -> result = +8
-	ld b, a
+	; x position already in b
 
 	; Load y position of top tile in c
 	ld a, [w_vengefly_position_y]
@@ -62,6 +56,11 @@ vengefly_check_collision_right::
 
 
 vengefly_check_collision_up::
+	; Load y position in c
+	ld a, [w_vengefly_position_y]
+	sub 11 ; -16 Offset grid by 16; +6 Account for blank pixels in sprite; -1 Check incoming tile -> result = -11
+	ld c, a
+
 	; Check x flip of sprite
 	ld a, [wShadowOAM + $4C + 3]
 	or a
@@ -72,12 +71,7 @@ vengefly_check_collision_up::
 	ld a, [w_vengefly_position_x_int]
 	sub 8 ; Offset grid by 8
 	ld b, a
-
-	; Load y position in c
-	ld a, [w_vengefly_position_y]
-	sub 11 ; -16 Offset grid by 16; +6 Account for blank pixels in sprite; -1 Check incoming tile -> result = -11
-	ld c, a
-
+	; y position already in c
 	call check_collision
 	or a
 	ret nz
@@ -86,12 +80,7 @@ vengefly_check_collision_up::
 	ld a, [w_vengefly_position_x_int]
 	add 5 ; -8 Offset grid by 8; +15 Go to the end of the sprite; -2 Account for blank pixels in sprite -> result = +5
 	ld b, a
-
-	; Load y position in c
-	ld a, [w_vengefly_position_y]
-	sub 11 ; -16 Offset grid by 16; +6 Account for blank pixels in sprite; -1 Check incoming tile -> result = -11
-	ld c, a
-
+	; y position already in c
 	call check_collision
 	ret
 
@@ -100,12 +89,7 @@ vengefly_check_collision_up::
 	ld a, [w_vengefly_position_x_int]
 	sub 14 ; -8 Offset grid by 8; -8 Go to the end of the sprite; +2 Account for blank pixels in sprite -> result = -14
 	ld b, a
-
-	; Load y position in c
-	ld a, [w_vengefly_position_y]
-	sub 11 ; -16 Offset grid by 16; +6 Account for blank pixels in sprite; -1 Check incoming tile -> result = -11
-	ld c, a
-
+	; y position already in c
 	call check_collision
 	or a
 	ret nz
@@ -114,17 +98,17 @@ vengefly_check_collision_up::
 	ld a, [w_vengefly_position_x_int]
 	sub 1 ; -8 Offset grid by 8; +7 Go to the end of the sprite; -> result = -1
 	ld b, a
-
-	; Load y position in c
-	ld a, [w_vengefly_position_y]
-	sub 11 ; -16 Offset grid by 16; +6 Account for blank pixels in sprite; -1 Check incoming tile -> result = -11
-	ld c, a
-
+	; y position already in c
 	call check_collision
 	ret
 
 
 vengefly_check_collision_down::
+	; Load y position in c
+	ld a, [w_vengefly_position_y]
+	; -16 Offset grid by 16; +15 Go to the end of sprite; +1 Check incoming tile -> result = 0
+	ld c, a
+
 	; Check x flip of sprite
 	ld a, [wShadowOAM + $4C + 3]
 	or a
@@ -135,12 +119,7 @@ vengefly_check_collision_down::
 	ld a, [w_vengefly_position_x_int]
 	sub 8 ; Offset grid by 8
 	ld b, a
-
-	; Load y position in c
-	ld a, [w_vengefly_position_y]
-	; -16 Offset grid by 16; +15 Go to the end of sprite; +1 Check incoming tile -> result = 0
-	ld c, a
-
+	; y position already in c
 	call check_collision
 	or a
 	ret nz
@@ -149,12 +128,7 @@ vengefly_check_collision_down::
 	ld a, [w_vengefly_position_x_int]
 	add 5 ; -8 Offset grid by 8; +15 Go to the end of the sprite; -2 Account for blank pixels in sprite -> result = +5
 	ld b, a
-
-	; Load y position in c
-	ld a, [w_vengefly_position_y]
-	; -16 Offset grid by 16; +15 Go to the end of sprite; +1 Check incoming tile -> result = 0
-	ld c, a
-
+	; y position already in c
 	call check_collision
 	ret
 
@@ -163,12 +137,7 @@ vengefly_check_collision_down::
 	ld a, [w_vengefly_position_x_int]
 	sub 14 ; -8 Offset grid by 8; -8 Go to the end of the sprite; +2 Account for blank pixels in sprite -> result = -14
 	ld b, a
-
-	; Load y position in c
-	ld a, [w_vengefly_position_y]
-	; -16 Offset grid by 16; +15 Go to the end of sprite; +1 Check incoming tile -> result = 0
-	ld c, a
-
+	; y position already in c
 	call check_collision
 	or a
 	ret nz
@@ -177,11 +146,6 @@ vengefly_check_collision_down::
 	ld a, [w_vengefly_position_x_int]
 	sub 1 ; -8 Offset grid by 8; +7 Go to the end of the sprite; -> result = -1
 	ld b, a
-
-	; Load y position in c
-	ld a, [w_vengefly_position_y]
-	; -16 Offset grid by 16; +15 Go to the end of sprite; +1 Check incoming tile -> result = 0
-	ld c, a
-
+	; y position already in c
 	call check_collision
 	ret
