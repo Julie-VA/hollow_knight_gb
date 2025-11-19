@@ -56,3 +56,15 @@ DEF enemy_health_byte		RB 1
 DEF enemy_type_byte			RB 1
 DEF enemy_end_byte			RB 1 ; 0 = end of the struct, 1 = there is another enemy after
 DEF PER_ENEMY_BYTES_COUNT	RB 0
+
+; SFX
+DEF	rAUD1LEN_lowb	EQU	$11
+DEF	rAUD1ENV_lowb	EQU $12
+DEF	rAUD1LOW_lowb	EQU $13
+DEF	rAUD1HIGH_lowb	EQU $14
+DEF	rAUD4LEN_lowb	EQU $20
+DEF	rAUD4ENV_lowb	EQU $21
+DEF	rAUD4POLY_lowb	EQU $22
+DEF	rAUD4GO_lowb	EQU $23
+DEF	SFX_NEXT		EQU 1
+DEF	SFX_END			EQU 0

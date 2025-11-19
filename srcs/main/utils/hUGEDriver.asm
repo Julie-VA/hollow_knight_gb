@@ -354,7 +354,7 @@ get_note_period:
 ;;; Param: A = Note ID
 ;;; Return: A = Note's poly
 ;;; Destroy: F HL
-get_note_poly:
+get_note_poly::
     ;; Invert the order of the numbers
     add 192 ; (255 - 63)
     cpl

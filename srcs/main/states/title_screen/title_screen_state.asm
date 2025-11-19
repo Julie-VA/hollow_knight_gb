@@ -1,12 +1,13 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 
 SECTION "TitleScreenState", ROM0
- 
+
 title_screen_tile_data: INCBIN "resources/title_screen.2bpp"
 title_screen_tile_data_end:
- 
+
 title_screen_tile_map: INCBIN "resources/title_screen.tilemap"
 title_screen_tile_map_end:
+
 
 init_title_screen_state::
 	call draw_title_screen
@@ -37,6 +38,7 @@ init_title_screen_state::
 
     ret
 
+
 draw_title_screen::
 	; Copy the tile data
 	ld de, title_screen_tile_data
@@ -49,6 +51,7 @@ draw_title_screen::
 	ld hl, $9800
 	ld bc, title_screen_tile_map_end - title_screen_tile_map
 	jp copy_de_into_memory_at_hl
+
 
 update_title_screen_state::
     ; Save the passed value into the variable: m_wait_key
