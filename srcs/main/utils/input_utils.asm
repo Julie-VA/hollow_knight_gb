@@ -10,7 +10,7 @@ SECTION "InputUtils", ROM0
 wait_for_key_title::	
 wait_for_key_title_loop:
 	; Play OST
-	; call hUGE_dosound
+	call hUGE_dosound
 
 	; Save the keys last frame
 	ld a, [w_cur_keys]
@@ -22,16 +22,6 @@ wait_for_key_title_loop:
 	; So it's best to use some tested code
     call input
 
-;
-	ld a, [w_cur_keys]
-	and PADF_A
-	jp z, .rest
-
-	call play_sfx
-
-;
-
-.rest:
 	ld a, [m_wait_key]
     ld b, a
 	ld a, [w_cur_keys]

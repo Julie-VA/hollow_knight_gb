@@ -1,5 +1,8 @@
+;; This is a copy of hUGEDriver.asm that I use to play sound effects composed in hUGETRACKER.
+;; I renamed global functions so both drivers would be separate.
+
 INCLUDE "srcs/main/utils/hardware.inc"
-INCLUDE "srcs/main/utils/hUGE.inc"
+INCLUDE "srcs/main/utils/hUGEDriver/hUGE.inc"
 
 MACRO add_a_to_r16
     add LOW(\1)
@@ -33,7 +36,7 @@ ENDM
 ;; Maximum pattern length
 DEF PATTERN_LENGTH EQU 64
 
-SECTION "Playback variables", WRAM0
+SECTION "SFX Playback variables", WRAM0
 ;; Active song descriptor
 order_cnt: db
 _start_song_descriptor_pointers:
@@ -62,8 +65,8 @@ pattern4: dw
 ;; How long a row lasts in ticks (1 = one row per call to `hUGE_dosound`, etc. 0 translates to 256)
 ticks_per_row: db
 
-_hUGE_current_wave::
-hUGE_current_wave::
+_sfx_current_wave::
+sfx_current_wave::
 ;; ID of the wave currently loaded into wave RAM
 current_wave: db
 def hUGE_NO_WAVE equ 100
@@ -72,7 +75,7 @@ def hUGE_NO_WAVE equ 100
 ;; Everything between this and `end_zero` is zero-initialized by `hUGE_init`
 start_zero:
 
-_hUGE_mute_mask::
+_sfx_mute_mask::
 mute_channels: db
 
 counter: db
@@ -148,10 +151,10 @@ ds 4
 
 end_zero:
 
-SECTION "Sound Driver", ROM0
+SECTION "SFX Sound Driver", ROM0
 
 IF DEF(GBDK)
-_hUGE_init::
+_sfx_init::
     ld h, d
     ld l, e
 ENDC
@@ -160,7 +163,7 @@ ENDC
 ;;; !!! BE SURE THAT `hUGE_dosound` WILL NOT BE CALLED WHILE THIS RUNS !!!
 ;;; Param: HL = Pointer to the "song descriptor" you wish to load (typically exported by hUGETracker).
 ;;; Destroys: AF C DE HL
-hUGE_init::
+sfx_init::
     ld a, [hl+] ; tempo
     ld [ticks_per_row], a
 
@@ -249,7 +252,7 @@ ENDC
     ret
 
 IF DEF(GBDK)
-_hUGE_mute_channel::
+_sfx_mute_channel::
     ld b, a
     ld c, e
 ENDC
@@ -261,7 +264,7 @@ ENDC
 ;;; Param: B = Which channel to enable; 0 for CH1, 1 for CH2, etc.
 ;;; Param: C = 0 to unmute the channel, 1 to mute it
 ;;; Destroy: A C E HL
-hUGE_mute_channel::
+sfx_mute_channel::
     ld e, $fe
     ld a, b
     or a
@@ -348,45 +351,6 @@ get_note_period:
     ld l, a
 
     scf
-    ret
-
-;;; Gets a note's "polynomial counter", i.e. what should be written to NR44.
-;;; Param: A = Note ID
-;;; Return: A = Note's poly
-;;; Destroy: F HL
-get_note_poly::
-    ;; Invert the order of the numbers
-    add 192 ; (255 - 63)
-    cpl
-
-    ;; Thanks to RichardULZ for this formula
-    ;; https://docs.google.com/spreadsheets/d/1O9OTAHgLk1SUt972w88uVHp44w7HKEbS/edit#gid=75028951
-    ; if A > 7 then begin
-    ;   B := (A-4) div 4;
-    ;   C := (A mod 4)+4;
-    ;   A := (C or (B shl 4))
-    ; end;
-
-    ; if A < 7 then return
-    cp 7
-    ret c
-
-    ld h, a
-
-    ; B := (A-4) div 4;
-    srl a
-    srl a
-    dec a
-    ld l, a
-
-    ; C := (A mod 4)+4;
-    ld a, h
-    and 3 ; mod 4
-    add 4
-
-    ; A := (C or (B shl 4))
-    swap l
-    or l
     ret
 
 
@@ -852,12 +816,12 @@ fx_set_speed:
 
 
 IF DEF(GBDK)
-_hUGE_set_position::
+_sfx_set_position::
     ld c, a
     xor a
 ENDC
 
-hUGE_set_position::
+sfx_set_position::
 ;;; Processes (global) effect B, "position jump".
 ;;; Param: C = ID of the order to jump to
 ;;; Destroy: A
@@ -1405,10 +1369,10 @@ setup_instrument_pointer:
     rla ; reset the Z flag
     ret
 
-_hUGE_dosound::
+_sfx_dosound::
 ;;; Ticks the sound engine once.
 ;;; Destroy: AF BC DE HL
-hUGE_dosound::
+sfx_dosound::
 IF DEF(PREVIEW_MODE)
    ld a, [single_stepping]
    ld hl, single_step_stopped
@@ -1893,4 +1857,4 @@ ENDC
     ret
 
 note_table:
-INCLUDE "srcs/main/utils/hUGE_note_table.inc"
+INCLUDE "srcs/main/utils/hUGEDriver/hUGE_note_table.inc"

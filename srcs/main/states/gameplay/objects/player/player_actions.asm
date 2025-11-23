@@ -9,6 +9,12 @@ attack::
 	or a
 	ret nz
 
+	; ; Initialize sound effect
+	; ld hl, SFX_sword_1
+	; call sfx_init
+	; ; Start sound effect
+	; call sfx_dosound
+
 ; Check if down is pressed, if it is, check if player is jumping, if they aren't set w_player_attacking to 3 (up), if they are set w_player_attacking to 4 (down)
 .attack_check_down
 	ld a, [w_cur_keys]

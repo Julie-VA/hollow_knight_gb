@@ -1,4 +1,4 @@
-INCLUDE "srcs/main/utils/hUGE.inc"
+INCLUDE "srcs/main/utils/hUGEDriver/hUGE.inc"
 
 SECTION "OST_title Song Data", ROMX
 

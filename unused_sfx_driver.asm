@@ -1,6 +1,6 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
-INCLUDE "srcs/main/utils/hUGE.inc"
+INCLUDE "srcs/main/utils/hUGEDriver/hUGE.inc"
 
 SECTION "SFX Tables", ROMX
 

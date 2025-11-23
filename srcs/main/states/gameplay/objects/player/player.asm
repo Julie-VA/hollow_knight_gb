@@ -157,6 +157,9 @@ update_player::
 	call draw_player
 	call draw_attack
 
+.update_player_sfx
+	call player_sfx
+
 	ret
 
 
@@ -223,4 +226,26 @@ draw_attack:
 	ld a, [w_player_counter_attack]
 	inc a
 	ld [w_player_counter_attack], a
+	ret
+
+
+player_sfx:
+	; Check if player is attacking
+	ld a, [w_player_attacking]
+	or a
+	ret z
+
+	; Check if sound effect needs to be started.
+	ld a, [w_player_counter_attack]
+	dec a ; cp 1
+	jr nz, .player_sfx_continue
+
+	; Initialize sound effect
+	ld hl, SFX_sword_1
+	call sfx_init
+
+.player_sfx_continue
+	; Continue playing sound effect
+	call sfx_dosound
+
 	ret
