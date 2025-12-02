@@ -87,27 +87,8 @@ initialize_vengefly::
 
 
 update_vengefly::
-	; call test_code
-
 	call vengefly_ai
 	call draw_vengefly
-	ret
-
-
-test_code:
-	; ld a, %00100000
-	; ld [wShadowOAM + $40 + 3], a
-	; ld [wShadowOAM + $44 + 3], a
-	; ld [wShadowOAM + $48 + 3], a
-	; ld [wShadowOAM + $4C + 3], a
-
-	call vengefly_check_collision_down
-	or a
-	ret nz
-
-	ld a, [w_vengefly_position_y]
-	inc a
-	ld [w_vengefly_position_y], a
 	ret
 
 

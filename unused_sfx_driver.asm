@@ -2,6 +2,20 @@ INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
 INCLUDE "srcs/main/utils/hUGEDriver/hUGE.inc"
 
+; SFX (place in .inc file)
+DEF	rAUD1LEN_lowb	EQU	$11
+DEF	rAUD1ENV_lowb	EQU $12
+DEF	rAUD1LOW_lowb	EQU $13
+DEF	rAUD1HIGH_lowb	EQU $14
+DEF	rAUD4LEN_lowb	EQU $20
+DEF	rAUD4ENV_lowb	EQU $21
+DEF	rAUD4POLY_lowb	EQU $22
+DEF	rAUD4GO_lowb	EQU $23
+DEF	SFX_NEXT		EQU 1
+DEF	SFX_END			EQU 0
+DEF	sBITCOUNTEROFF	EQU 0
+DEF	sBITCOUNTERON	EQU 1
+
 SECTION "SFX Tables", ROMX
 
 ; Format: db -> low byte of register (all audio registers start with $FF), value

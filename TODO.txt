@@ -1,0 +1,3 @@
+- update player sprite to remove sword in the back when attacking
+- hitboxes and attacking enemies
+- scrolling backgrounds
