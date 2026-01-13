@@ -1,5 +1,6 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
+INCLUDE "srcs/main/utils/tile_number_table.inc"
 
 SECTION "PlayerAnimations", ROM0
 
@@ -263,12 +264,12 @@ animate_jump::
 	jr nz, .animate_jump_falling ; The falling animation has the cape up which we also want when rising and moving
 
 .animate_jump_rising_idle
-	ld a, PLAYER_IDLE
+	ld a, PLAYER_BOT_IDLE
 	ld [wShadowOAM + $04 + 2], a
 	jp draw_player.done
 
 .animate_jump_falling
-	ld a, PLAYER_FALLING
+	ld a, PLAYER_BOT_WALK_2 ; Falling and walk 2 animations are the same
 	ld [wShadowOAM + $04 + 2], a
 	jp draw_player.done
 
@@ -276,7 +277,7 @@ animate_jump::
 animate_walk::
 	; Check if current frame is idle, if yes jump right to animate_walk_update_frame
 	ld a, [wShadowOAM + $04 + 2] ; = wShadowOAM + $06 = 2nd OAMRAM spot's tile number
-	cp PLAYER_IDLE
+	cp PLAYER_BOT_IDLE
 	jr z, .animate_walk_update_frame
 	; Wait 10 frames before updating the walk animation
 	ld a, [w_player_counter_walk]
@@ -288,10 +289,15 @@ animate_walk::
 
 .animate_walk_update_frame
 	ld a, [wShadowOAM + $04 + 2]
+	cp PLAYER_BOT_WALK_2 ; If we're past the animations including the sword, sub 3. The following flag checks do a <= PLAYER_BOT_WALK_2
+	jr z, :+ ; If z is set, a == PLAYER_BOT_WALK_2
+	jr c, :+ ; If c is set, a < PLAYER_BOT_WALK_2
+	sub 3
+:
 	inc a ; Used for cycling between the walking animation sprites
-	cp PLAYER_WALK_END + 1
+	cp PLAYER_BOT_WALK_2 + 1 ; 2 animation frames, so 3 is out of range
 	jr nz, .animate_walk_update_sprite_index ; If still in range, set frame 1 or 2 of anim
-	ld a, PLAYER_WALK_START ; Else, we're past the last index so set it back to first frame of anim
+	ld a, PLAYER_BOT_WALK_1 ; Else, we're past the last index so set it back to first frame of anim
 
 .animate_walk_update_sprite_index
 	ld [wShadowOAM + $04 + 2], a

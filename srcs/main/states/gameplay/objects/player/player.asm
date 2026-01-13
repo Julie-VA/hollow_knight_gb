@@ -1,5 +1,6 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
+INCLUDE "srcs/main/utils/tile_number_table.inc"
 
 SECTION "PlayerVariables", WRAM0
 
@@ -57,7 +58,7 @@ initialize_player::
 	ld b, a
 	ld a, [w_player_position_x]
 	ld c, a
-	ld d, $00
+	ld d, PLAYER_TOP
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -67,7 +68,7 @@ initialize_player::
 	ld b, a
 	ld a, [w_player_position_x]
 	ld c, a
-	ld d, $01
+	ld d, PLAYER_BOT_IDLE
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -76,44 +77,44 @@ initialize_player::
 	xor a
 	ld b, a
 	ld c, a
-	ld d, $04
+	ld d, SLASH_1_X
 	ld e, a
 	call RenderSimpleSprite
 	; Set slash_2_x
-	ld d, $05
+	ld d, SLASH_2_X
 	call RenderSimpleSprite
 	; Set slash_3_x
-	ld d, $06
+	ld d, SLASH_3_X
 	call RenderSimpleSprite
 	; Set slash_4_x
-	ld d, $07
+	ld d, SLASH_4_X
 	call RenderSimpleSprite
 
 	; Set slash_after_effect_1_x
-	ld d, $08
+	ld d, SLASH_AFTER_EFFECT_1_X
 	call RenderSimpleSprite
 	; Set slash_after_effect_2_x
-	ld d, $09
+	ld d, SLASH_AFTER_EFFECT_2_X
 	call RenderSimpleSprite
 
 	; Set slash_1_y
-	ld d, $0A
+	ld d, SLASH_1_Y
 	call RenderSimpleSprite
 	; Set slash_2_y
-	ld d, $0B
+	ld d, SLASH_2_Y
 	call RenderSimpleSprite
 	; Set slash_3_y
-	ld d, $0C
+	ld d, SLASH_3_Y
 	call RenderSimpleSprite
 	; Set slash_4_y
-	ld d, $0D
+	ld d, SLASH_4_Y
 	call RenderSimpleSprite
 
 	; Set slash_after_effect_1_y
-	ld d, $0E
+	ld d, SLASH_AFTER_EFFECT_1_Y
 	call RenderSimpleSprite
 	; Set slash_after_effect_2_y
-	ld d, $0F
+	ld d, SLASH_AFTER_EFFECT_2_Y
 	call RenderSimpleSprite
 
 	ret
@@ -216,6 +217,17 @@ draw_player:
 	jp nz, animate_walk
 
 .done::
+	; Check if player is attacking, if so, update player_bottom sprite to not include sword
+	ld a, [w_player_attacking]
+	or a
+	ret z
+	ld a, [wShadowOAM + $04 + 2]
+	cp PLAYER_BOT_IDLE_ATK ; If we're past the animations including the sword, do not add 3. The following flag checks do a >= PLAYER_BOT_IDLE_ATK
+	jr z, :+ ; If z is set, a == PLAYER_BOT_IDLE_ATK
+	jr nc, :+ ; If c is not set, a > PLAYER_BOT_IDLE_ATK
+	add 3
+	: ld [wShadowOAM + $04 + 2], a
+
 	ret
 
 
@@ -224,6 +236,8 @@ draw_attack:
 	ld a, [w_player_attacking]
 	or a
 	ret z
+
+	
 
 	ld a, [w_player_counter_attack]
 	cp AFTER_EFFECT_TIME + 1 ; Check if we're past the attack animation
@@ -256,6 +270,7 @@ draw_attack:
 	ld a, [w_player_counter_attack]
 	inc a
 	ld [w_player_counter_attack], a
+
 	ret
 
 

@@ -1,5 +1,6 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
+INCLUDE "srcs/main/utils/tile_number_table.inc"
 
 SECTION "VengeflyVariables", WRAM0
 
@@ -43,43 +44,43 @@ initialize_vengefly::
 	ld a, VENGEFLY_HEALTH
 	ld [w_vengefly_health], a
 
-	; Set vengefly_ul
+	; Set vengefly top left
 	ld a, [w_vengefly_position_y]
 	ld b, a
 	ld a, [w_vengefly_position_x_int]
 	ld c, a
-	ld d, $12
+	ld d, VENGEFLY_TL
 	ld e, 0
 	call RenderSimpleSprite
 
-	; Set vengefly_ur
+	; Set vengefly top right
 	ld a, [w_vengefly_position_y]
 	ld b, a
 	ld a, [w_vengefly_position_x_int]
 	add 8
 	ld c, a
-	ld d, $13
+	ld d, VENGEFLY_TR
 	ld e, 0
 	call RenderSimpleSprite
 
-	; Set vengefly_dl
+	; Set vengefly bottom left
 	ld a, [w_vengefly_position_y]
 	add 8
 	ld b, a
 	ld a, [w_vengefly_position_x_int]
 	ld c, a
-	ld d, $14
+	ld d, VENGEFLY_BL
 	ld e, 0
 	call RenderSimpleSprite
 
-	; Set vengefly_dr
+	; Set vengefly bottom right
 	ld a, [w_vengefly_position_y]
 	add 8
 	ld b, a
 	ld a, [w_vengefly_position_x_int]
 	add 8
 	ld c, a
-	ld d, $15
+	ld d, VENGEFLY_BR
 	ld e, 0
 	call RenderSimpleSprite
 

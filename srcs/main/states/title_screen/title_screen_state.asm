@@ -66,6 +66,10 @@ update_title_screen_state::
 	ld a, %11100100
 	ld [rBGP], a
 
+	; Turn off audio
+	xor a
+	ld [rNR52], a
+
     ld a, 1
     ld [w_game_state],a
     jp next_game_state

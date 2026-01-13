@@ -17,7 +17,7 @@ SECTION "Header", ROM0[$100]
 entry_point:
 	; Turn off audio
 	xor a
-    ld [rNR52], a
+	ld [rNR52], a
 
 	; Initialize game state at 0
     ld [w_game_state], a

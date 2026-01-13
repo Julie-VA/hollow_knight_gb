@@ -16,6 +16,16 @@ init_gameplay_state::
 	ld a, %10010011
 	ld [rOBP0], a
 
+	; Enable sound globally
+	ld a, $80
+	ld [rAUDENA], a
+	; Enable all channels in stereo
+	ld a, $FF
+	ld [rAUDTERM], a
+	; Set volume
+	ld a, $77
+	ld [rAUDVOL], a
+
 	ret
 
 

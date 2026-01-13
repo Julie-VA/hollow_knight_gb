@@ -1,5 +1,6 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
+INCLUDE "srcs/main/utils/tile_number_table.inc"
 
 SECTION "CrawlidVariables", WRAM0
 
@@ -37,7 +38,7 @@ initialize_crawlid::
 	ld b, a
 	ld a, [w_crawlid_position_x_int]
 	ld c, a
-	ld d, $10
+	ld d, CRAWLID_L
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -47,7 +48,7 @@ initialize_crawlid::
 	ld a, [w_crawlid_position_x_int]
 	add 8
 	ld c, a
-	ld d, $11
+	ld d, CRAWLID_R
 	ld e, 0
 	call RenderSimpleSprite
 

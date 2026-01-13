@@ -1,8 +1,12 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 
+; How this works:
+; 1st line sets sprites_tiles_start to 0
+; 2nd line sets PLAYER_TILES_START to _VRAM
+; 3rd line sets ENEMIES_TILES_START to _VRAM + (19*16)
 RSRESET
 DEF sprites_tiles_start	RB _VRAM
-DEF PLAYER_TILES_START	RB 16*16
+DEF PLAYER_TILES_START	RB 19*16
 DEF ENEMIES_TILES_START	RB 6*16
 
 ; Movement speeds
@@ -31,12 +35,6 @@ DEF ATTACK_RIGHT			EQU 1
 DEF ATTACK_LEFT				EQU 2
 DEF ATTACK_UP				EQU 3
 DEF ATTACK_DOWN				EQU 4
-
-; Player animations
-DEF PLAYER_IDLE			EQU 1
-DEF PLAYER_WALK_START	EQU 2
-DEF PLAYER_WALK_END		EQU 3 ; Second walking frame and falling frame are the same
-DEF PLAYER_FALLING		EQU 3
 
 ; Enemies
 DEF CRAWLID						EQU 0
