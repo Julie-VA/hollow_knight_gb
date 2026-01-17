@@ -57,6 +57,7 @@ initialize_crawlid::
 
 update_crawlid::
 	call crawlid_ai
+	call crawlid_check_collision_player
 	call draw_crawlid
 	ret
 

@@ -14,7 +14,7 @@ vengefly_check_collision_left::
 	dec a ; -16 Offset grid by 16; +15 Check at the bottom of vengefly -> result = -1
 	ld c, a
 
-	call check_collision
+	call check_collision_wall
 	or a
 	ret nz
 
@@ -25,7 +25,7 @@ vengefly_check_collision_left::
 	sub 10 ; -16 Offset grid by 16; +6 Account for blank pixels in sprite -> result = -10
 	ld c, a
 
-	call check_collision
+	call check_collision_wall
 	ret
 
 
@@ -40,7 +40,7 @@ vengefly_check_collision_right::
 	dec a ; -16 Offset grid by 16; +15 Check at the bottom of vengefly -> result = -1
 	ld c, a
 
-	call check_collision
+	call check_collision_wall
 	or a
 	ret nz
 
@@ -51,7 +51,7 @@ vengefly_check_collision_right::
 	sub 10 ; -16 Offset grid by 16; +6 Account for blank pixels in sprite -> result = -10
 	ld c, a
 
-	call check_collision
+	call check_collision_wall
 	ret
 
 
@@ -72,7 +72,7 @@ vengefly_check_collision_up::
 	sub 8 ; Offset grid by 8
 	ld b, a
 	; y position already in c
-	call check_collision
+	call check_collision_wall
 	or a
 	ret nz
 
@@ -81,7 +81,7 @@ vengefly_check_collision_up::
 	add 5 ; -8 Offset grid by 8; +15 Go to the end of the sprite; -2 Account for blank pixels in sprite -> result = +5
 	ld b, a
 	; y position already in c
-	call check_collision
+	call check_collision_wall
 	ret
 
 .flipped_right
@@ -90,7 +90,7 @@ vengefly_check_collision_up::
 	sub 14 ; -8 Offset grid by 8; -8 Go to the end of the sprite; +2 Account for blank pixels in sprite -> result = -14
 	ld b, a
 	; y position already in c
-	call check_collision
+	call check_collision_wall
 	or a
 	ret nz
 
@@ -99,7 +99,7 @@ vengefly_check_collision_up::
 	sub 1 ; -8 Offset grid by 8; +7 Go to the end of the sprite; -> result = -1
 	ld b, a
 	; y position already in c
-	call check_collision
+	call check_collision_wall
 	ret
 
 
@@ -120,7 +120,7 @@ vengefly_check_collision_down::
 	sub 8 ; Offset grid by 8
 	ld b, a
 	; y position already in c
-	call check_collision
+	call check_collision_wall
 	or a
 	ret nz
 
@@ -129,7 +129,7 @@ vengefly_check_collision_down::
 	add 5 ; -8 Offset grid by 8; +15 Go to the end of the sprite; -2 Account for blank pixels in sprite -> result = +5
 	ld b, a
 	; y position already in c
-	call check_collision
+	call check_collision_wall
 	ret
 
 .flipped_right
@@ -138,7 +138,7 @@ vengefly_check_collision_down::
 	sub 14 ; -8 Offset grid by 8; -8 Go to the end of the sprite; +2 Account for blank pixels in sprite -> result = -14
 	ld b, a
 	; y position already in c
-	call check_collision
+	call check_collision_wall
 	or a
 	ret nz
 
@@ -147,5 +147,5 @@ vengefly_check_collision_down::
 	sub 1 ; -8 Offset grid by 8; +7 Go to the end of the sprite; -> result = -1
 	ld b, a
 	; y position already in c
-	call check_collision
+	call check_collision_wall
 	ret

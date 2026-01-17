@@ -15,7 +15,7 @@ check_collision_left::
 	dec a ; -16 Offset grid by 16; +15 Check at the feet of player -> result = -1
 	ld c, a
 
-	call check_collision
+	call check_collision_wall
 	or a
 	ret nz
 
@@ -26,7 +26,7 @@ check_collision_left::
 	sub 16 ; Offset grid by 16 to check at the head of player
 	ld c, a
 
-	call check_collision
+	call check_collision_wall
 	ret
 
 
@@ -42,7 +42,7 @@ check_collision_right::
 	dec a ; -16 Offset grid by 16; +15 Check at the feet of player -> result = -1
 	ld c, a
 
-	call check_collision
+	call check_collision_wall
 	or a
 	ret nz
 
@@ -53,7 +53,7 @@ check_collision_right::
 	sub 16 ; Offset grid by 16 to check at the head of player
 	ld c, a
 
-	call check_collision
+	call check_collision_wall
 	ret
 
 
@@ -68,7 +68,7 @@ check_collision_up::
 	sub 17 ; -16 Offset grid by 16; -1 Check incoming tile -> result = -17
 	ld c, a
 
-	call check_collision
+	call check_collision_wall
 	or a
 	ret nz
 
@@ -79,7 +79,7 @@ check_collision_up::
 
 	; y position already in c
 
-	call check_collision
+	call check_collision_wall
 	ret
 
 
@@ -94,7 +94,7 @@ check_collision_down::
 	; -16 Offset grid by 16; +8 Check at the feet of player; +7 Go to the end of the sprite; +1 Check incoming tile -> result = 0
 	ld c, a
 
-	call check_collision
+	call check_collision_wall
 	or a
 	ret nz
 
@@ -105,5 +105,5 @@ check_collision_down::
 
 	; y position already in c
 
-	call check_collision
+	call check_collision_wall
 	ret

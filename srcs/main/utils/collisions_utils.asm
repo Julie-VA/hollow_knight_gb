@@ -1,6 +1,11 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
 
+SECTION "CollisionUtilsVariables", WRAM0
+w_size::			db
+w_object1_value::	db
+w_object2_value::	db
+
 SECTION "Collisions", ROM0
 
 ; @param b: X position
@@ -11,7 +16,7 @@ SECTION "Collisions", ROM0
 ; 2 (implemented): Set last 3 bits of y position to 0 (same as dividing since we multiply after), and multiply by 4 to get tile y position. Then add tile x position
 ; 3: Add $98 to high byte to get the tilemap address
 ; 4: Get tile number from tilemap address
-check_collision::
+check_collision_wall::
 	; Load x position in a
 	ld a, b
 
@@ -51,12 +56,47 @@ check_collision::
 
 	; Check collision
 	or a
-	jr nz, .check_collision_hit
+	jr nz, .hit
 
-.check_collision_no_hit
+.no_hit
 	xor a
 	ret
 
-.check_collision_hit
+.hit
 	ld a, 1
+	ret
+
+
+; The easiest way to check for overlap, is to check the difference bewteen their centers. If the absolute value of their x & y differences
+; are BOTH smaller than the sum of their half widths, we have a collision. (From https://gbdev.io/gb-asm-tutorial/part3/collision.html)
+; SizeX = Obj1 half width + Obj2 half width | SizeY = Obj1 half height + Obj2 half height
+; ABS(Obj1.x - Obj2.x) > SizeX AND/OR ABS(Obj1.y - Obj2.y) > SizeY == No collision
+; ABS(Obj1.x - Obj2.x) < SizeX AND ABS(Obj1.y - Obj2.y) < SizeY == Collision
+check_object_position_difference::
+	ld a, [w_object1_value]
+	ld b, a
+	ld a, [w_object2_value]
+	ld c, a
+	ld a, [w_size]
+	ld d, a
+
+	; Substract Obj2(c) - (Obj1 + Size)(b)
+	; Carry means b < c, so Obj1 is visually above or to the left of Obj2
+	ld a, b
+	add d
+	cp c
+	jr c, .failure
+
+	; Substract Obj2(c) - (Obj1 - Size)(b)
+	; No carry means b > c, so Obj1 is visually under or to the right of Obj2
+	ld a, b
+	sub d
+	cp c
+	jr nc, .failure
+
+	ld a, 1
+	ret
+
+.failure
+	xor a
 	ret
