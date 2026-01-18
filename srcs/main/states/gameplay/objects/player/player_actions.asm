@@ -1,5 +1,6 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
+INCLUDE "srcs/main/utils/oam_number_table.inc"
 
 SECTION "PlayerMovement", ROM0
 
@@ -66,7 +67,7 @@ attack::
 ; If no direction is pressed while attacking, set w_player_attacking to the direction the player is facing
 .attack_no_dir
 	; Check attributes of player head, to see if it's flipped
-	ld a, [wShadowOAM + $00 + 3]
+	ld a, [wShadowOAM + OAM_PLAYER_TOP + 3]
 	or a
 	jr z, .attack_no_dir_flip_right
 .attack_no_dir_flip_left
@@ -88,19 +89,19 @@ attack::
 .attack_set_attributes_x_slash
 	; Set attack and after effect attributes
 	; attack
-	ld [wShadowOAM + $08 + 3], a
-	ld [wShadowOAM + $0C + 3], a
-	ld [wShadowOAM + $10 + 3], a
-	ld [wShadowOAM + $14 + 3], a
+	ld [wShadowOAM + OAM_SLASH_1_X + 3], a
+	ld [wShadowOAM + OAM_SLASH_2_X + 3], a
+	ld [wShadowOAM + OAM_SLASH_3_X + 3], a
+	ld [wShadowOAM + OAM_SLASH_4_X + 3], a
 	; after effect
-	ld [wShadowOAM + $18 + 3], a
-	ld [wShadowOAM + $1C + 3], a
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_X + 3], a
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_X + 3], a
 	ret
 
 ; This is used to x flip in the direction of the player and potentially y flip (with b) the vertical slashes (used in .attack_check_down and .attack_check_up)
 .attack_set_attributes_y_slash
 	; Check attributes of player head, to see if it's flipped
-	ld a, [wShadowOAM + $00 + 3]
+	ld a, [wShadowOAM + OAM_PLAYER_TOP + 3]
 	or a
 	jr z, .attack_set_attributes_y_slash_flip_right
 .attack_set_attributes_y_slash_flip_left
@@ -116,22 +117,22 @@ attack::
 
 	; Set attack and after effect attributes
 	; attack
-	ld [wShadowOAM + $20 + 3], a
-	ld [wShadowOAM + $24 + 3], a
-	ld [wShadowOAM + $28 + 3], a
-	ld [wShadowOAM + $2C + 3], a
+	ld [wShadowOAM + OAM_SLASH_1_Y + 3], a
+	ld [wShadowOAM + OAM_SLASH_2_Y + 3], a
+	ld [wShadowOAM + OAM_SLASH_3_Y + 3], a
+	ld [wShadowOAM + OAM_SLASH_4_Y + 3], a
 	; after effect
-	ld [wShadowOAM + $30 + 3], a
-	ld [wShadowOAM + $34 + 3], a
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_Y + 3], a
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_Y + 3], a
 	ret
 
 
 move_left::
 	; Flip knight_top
 	ld a, %00100000
-	ld [wShadowOAM + $00 + 3], a
+	ld [wShadowOAM + OAM_PLAYER_TOP + 3], a
 	; Flip knight_bottom
-	ld [wShadowOAM + $04 + 3], a
+	ld [wShadowOAM + OAM_PLAYER_BOT + 3], a
 
 	call check_collision_left
 	; If we're going to hit a solid tile, don't move
@@ -149,9 +150,9 @@ move_left::
 move_right::
 	; Flip knight_top
 	xor a
-	ld [wShadowOAM + $00 + 3], a
+	ld [wShadowOAM + OAM_PLAYER_TOP + 3], a
 	; Flip knight_bottom
-	ld [wShadowOAM + $04 + 3], a
+	ld [wShadowOAM + OAM_PLAYER_BOT + 3], a
 
 	call check_collision_right
 	; If we're going to hit a solid tile, don't move
@@ -169,7 +170,7 @@ move_right::
 no_direction::
 	; Go back to idle
 	ld a, 1
-	ld [wShadowOAM + $04 + 2], a
+	ld [wShadowOAM + OAM_PLAYER_BOT + 2], a
 	ret
 
 

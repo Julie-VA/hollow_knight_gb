@@ -1,5 +1,6 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
+INCLUDE "srcs/main/utils/oam_number_table.inc"
 
 SECTION "VengeflyCollisions", ROM0
 
@@ -62,7 +63,7 @@ vengefly_check_collision_up::
 	ld c, a
 
 	; Check x flip of sprite
-	ld a, [wShadowOAM + $4C + 3]
+	ld a, [wShadowOAM + OAM_VENGEFLY_TL + 3]
 	or a
 	jr nz, .flipped_right
 
@@ -110,7 +111,7 @@ vengefly_check_collision_down::
 	ld c, a
 
 	; Check x flip of sprite
-	ld a, [wShadowOAM + $4C + 3]
+	ld a, [wShadowOAM + OAM_VENGEFLY_TL + 3]
 	or a
 	jr nz, .flipped_right
 

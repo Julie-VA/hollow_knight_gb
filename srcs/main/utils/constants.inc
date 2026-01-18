@@ -7,6 +7,7 @@ INCLUDE "srcs/main/utils/hardware.inc"
 RSRESET
 DEF sprites_tiles_start	RB _VRAM
 DEF PLAYER_TILES_START	RB 19*16
+DEF HUD_TILES_START		RB 8*16
 DEF ENEMIES_TILES_START	RB 6*16
 
 ; Movement speeds

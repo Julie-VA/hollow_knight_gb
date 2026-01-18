@@ -1,6 +1,7 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
 INCLUDE "srcs/main/utils/tile_number_table.inc"
+INCLUDE "srcs/main/utils/oam_number_table.inc"
 
 SECTION "CrawlidVariables", WRAM0
 
@@ -38,7 +39,7 @@ initialize_crawlid::
 	ld b, a
 	ld a, [w_crawlid_position_x_int]
 	ld c, a
-	ld d, CRAWLID_L
+	ld d, T_CRAWLID_L
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -48,7 +49,7 @@ initialize_crawlid::
 	ld a, [w_crawlid_position_x_int]
 	add 8
 	ld c, a
-	ld d, CRAWLID_R
+	ld d, T_CRAWLID_R
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -65,7 +66,7 @@ update_crawlid::
 
 crawlid_ai:
 	; Check if crawlid is moving left or right thanks to orientation of head (0 = left, %00100000 = right)
-	ld a, [wShadowOAM + $38 + 3]
+	ld a, [wShadowOAM + OAM_CRAWLID_L + 3]
 	and %00100000 ; Only the x flip bit is useful for this
 	cp %00100000
 	jr nz, .crawlid_ai_move_left
@@ -111,8 +112,8 @@ crawlid_ai:
 
 .crawlid_ai_flip_right
 	ld a, %00100000
-	ld [wShadowOAM + $38 + 3], a
-	ld [wShadowOAM + $3C + 3], a
+	ld [wShadowOAM + OAM_CRAWLID_L + 3], a
+	ld [wShadowOAM + OAM_CRAWLID_R + 3], a
 
 	; Update x position to reflect position of the head
 	ld a, [w_crawlid_position_x_int]
@@ -123,8 +124,8 @@ crawlid_ai:
 
 .crawlid_ai_flip_left
 	xor a
-	ld [wShadowOAM + $38 + 3], a
-	ld [wShadowOAM + $3C + 3], a
+	ld [wShadowOAM + OAM_CRAWLID_L + 3], a
+	ld [wShadowOAM + OAM_CRAWLID_R + 3], a
 
 	; Update x position to reflect position of the head
 	ld a, [w_crawlid_position_x_int]
@@ -138,11 +139,11 @@ draw_crawlid:
 	; Update crawlid position
 	; Update Y position in OAM
 	ld a, [w_crawlid_position_y]
-	ld [wShadowOAM + $38], a
-	ld [wShadowOAM + $3C], a
+	ld [wShadowOAM + OAM_CRAWLID_L], a
+	ld [wShadowOAM + OAM_CRAWLID_R], a
 
 	; Check what direction we're going first
-	ld a, [wShadowOAM + $38 + 3]
+	ld a, [wShadowOAM + OAM_CRAWLID_L + 3]
 	and %00100000 ; Only the x flip bit is useful for this
 	cp %00100000
 	jr z, .draw_crawlid_right
@@ -150,15 +151,15 @@ draw_crawlid:
 .draw_crawlid_left
 	; Update X position in OAM
 	ld a, [w_crawlid_position_x_int]
-	ld [wShadowOAM + $38 + 1], a
+	ld [wShadowOAM + OAM_CRAWLID_L + 1], a
 	add 8
-	ld [wShadowOAM + $3C + 1], a
+	ld [wShadowOAM + OAM_CRAWLID_R + 1], a
 	ret
 
 .draw_crawlid_right
 	; Update X position in OAM
 	ld a, [w_crawlid_position_x_int]
-	ld [wShadowOAM + $38 + 1], a
+	ld [wShadowOAM + OAM_CRAWLID_L + 1], a
 	sub 8
-	ld [wShadowOAM + $3C + 1], a
+	ld [wShadowOAM + OAM_CRAWLID_R + 1], a
 	ret

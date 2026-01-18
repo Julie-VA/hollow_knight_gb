@@ -1,6 +1,7 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
 INCLUDE "srcs/main/utils/tile_number_table.inc"
+INCLUDE "srcs/main/utils/oam_number_table.inc"
 
 SECTION "VengeflyVariables", WRAM0
 
@@ -49,7 +50,7 @@ initialize_vengefly::
 	ld b, a
 	ld a, [w_vengefly_position_x_int]
 	ld c, a
-	ld d, VENGEFLY_TL
+	ld d, T_VENGEFLY_TL
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -59,7 +60,7 @@ initialize_vengefly::
 	ld a, [w_vengefly_position_x_int]
 	add 8
 	ld c, a
-	ld d, VENGEFLY_TR
+	ld d, T_VENGEFLY_TR
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -69,7 +70,7 @@ initialize_vengefly::
 	ld b, a
 	ld a, [w_vengefly_position_x_int]
 	ld c, a
-	ld d, VENGEFLY_BL
+	ld d, T_VENGEFLY_BL
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -80,7 +81,7 @@ initialize_vengefly::
 	ld a, [w_vengefly_position_x_int]
 	add 8
 	ld c, a
-	ld d, VENGEFLY_BR
+	ld d, T_VENGEFLY_BR
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -204,7 +205,7 @@ vengefly_ai_move:
 	ret nz
 
 	; Check x flip of sprite
-	ld a, [wShadowOAM + $4C + 3]
+	ld a, [wShadowOAM + OAM_VENGEFLY_TL + 3]
 	or a
 	jr z, :++
 
@@ -220,10 +221,10 @@ vengefly_ai_move:
 
 	; If flipped, set to no flip
 	xor a
-	ld [wShadowOAM + $40 + 3], a
-	ld [wShadowOAM + $44 + 3], a
-	ld [wShadowOAM + $48 + 3], a
-	ld [wShadowOAM + $4C + 3], a
+	ld [wShadowOAM + OAM_VENGEFLY_TL + 3], a
+	ld [wShadowOAM + OAM_VENGEFLY_TR + 3], a
+	ld [wShadowOAM + OAM_VENGEFLY_BL + 3], a
+	ld [wShadowOAM + OAM_VENGEFLY_BR + 3], a
 
 	:ld a, [w_vengefly_position_x_int]
 	dec a
@@ -238,7 +239,7 @@ vengefly_ai_move:
 	ret nz
 
 	; Check x flip of sprite
-	ld a, [wShadowOAM + $4C + 3]
+	ld a, [wShadowOAM + OAM_VENGEFLY_TL + 3]
 	or a
 	jr nz, :++
 
@@ -254,10 +255,10 @@ vengefly_ai_move:
 
 	; If not flipped, set to flip
 	ld a, %00100000
-	ld [wShadowOAM + $40 + 3], a
-	ld [wShadowOAM + $44 + 3], a
-	ld [wShadowOAM + $48 + 3], a
-	ld [wShadowOAM + $4C + 3], a
+	ld [wShadowOAM + OAM_VENGEFLY_TL + 3], a
+	ld [wShadowOAM + OAM_VENGEFLY_TR + 3], a
+	ld [wShadowOAM + OAM_VENGEFLY_BL + 3], a
+	ld [wShadowOAM + OAM_VENGEFLY_BR + 3], a
 
 	:ld a, [w_vengefly_position_x_int]
 	inc a
@@ -292,33 +293,33 @@ draw_vengefly:
 	; Update vengefly position
 	; Update Y position in OAM
 	ld a, [w_vengefly_position_y]
-	ld [wShadowOAM + $40], a
-	ld [wShadowOAM + $44], a
+	ld [wShadowOAM + OAM_VENGEFLY_TL], a
+	ld [wShadowOAM + OAM_VENGEFLY_TR], a
 	add 8
-	ld [wShadowOAM + $48], a
-	ld [wShadowOAM + $4C], a
+	ld [wShadowOAM + OAM_VENGEFLY_BL], a
+	ld [wShadowOAM + OAM_VENGEFLY_BR], a
 
 	; Check what direction we're going before updating X pos
-	ld a, [wShadowOAM + $4C + 3]
+	ld a, [wShadowOAM + OAM_VENGEFLY_TL + 3]
 	or a
 	jr nz, .draw_vengefly_right
 
 .draw_vengefly_left
 	; Update X position in OAM
 	ld a, [w_vengefly_position_x_int]
-	ld [wShadowOAM + $40 + 1], a
-	ld [wShadowOAM + $48 + 1], a
+	ld [wShadowOAM + OAM_VENGEFLY_TL + 1], a
+	ld [wShadowOAM + OAM_VENGEFLY_BL + 1], a
 	add 8
-	ld [wShadowOAM + $44 + 1], a
-	ld [wShadowOAM + $4C + 1], a
+	ld [wShadowOAM + OAM_VENGEFLY_TR + 1], a
+	ld [wShadowOAM + OAM_VENGEFLY_BR + 1], a
 	ret
 
 .draw_vengefly_right
 	; Update X position in OAM
 	ld a, [w_vengefly_position_x_int]
-	ld [wShadowOAM + $40 + 1], a
-	ld [wShadowOAM + $48 + 1], a
+	ld [wShadowOAM + OAM_VENGEFLY_TL + 1], a
+	ld [wShadowOAM + OAM_VENGEFLY_BL + 1], a
 	sub 8
-	ld [wShadowOAM + $44 + 1], a
-	ld [wShadowOAM + $4C + 1], a
+	ld [wShadowOAM + OAM_VENGEFLY_TR + 1], a
+	ld [wShadowOAM + OAM_VENGEFLY_BR + 1], a
 	ret

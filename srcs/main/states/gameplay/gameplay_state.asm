@@ -4,6 +4,7 @@ SECTION "GameplayState", ROM0
 
 init_gameplay_state::
 	call initialize_player
+	call initialize_hud
 	call initialize_enemies
 	call initialize_background
 
@@ -41,6 +42,7 @@ update_gameplay_state::
 
 	call update_player
 	call update_enemies
+	call update_hud
 
 	halt
 

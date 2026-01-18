@@ -1,6 +1,7 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
 INCLUDE "srcs/main/utils/tile_number_table.inc"
+INCLUDE "srcs/main/utils/oam_number_table.inc"
 
 SECTION "PlayerAnimations", ROM0
 
@@ -13,11 +14,11 @@ animate_attack::
 .animate_attack_x_update_pos
 	; Update Y position of attack animation
 	ld a, [w_player_position_y]
-	ld [wShadowOAM + $08], a ; top left
-	ld [wShadowOAM + $0C], a ; top right
+	ld [wShadowOAM + OAM_SLASH_1_X], a ; top left
+	ld [wShadowOAM + OAM_SLASH_2_X], a ; top right
 	add a, 8
-	ld [wShadowOAM + $10], a ; bottom left
-	ld [wShadowOAM + $14], a ; bottom right
+	ld [wShadowOAM + OAM_SLASH_3_X], a ; bottom left
+	ld [wShadowOAM + OAM_SLASH_4_X], a ; bottom right
 
 	; Check if we're attacking left or right to position it left or right of the player
 	ld a, [w_player_attacking]
@@ -28,28 +29,28 @@ animate_attack::
 	; Update X position of attack animation
 	ld a, [w_player_position_x]
 	sub a, 8
-	ld [wShadowOAM + $08 + 1], a ; top left
-	ld [wShadowOAM + $10 + 1], a ; bottom left
+	ld [wShadowOAM + OAM_SLASH_1_X + 1], a ; top left
+	ld [wShadowOAM + OAM_SLASH_3_X + 1], a ; bottom left
 	sub a, 8
-	ld [wShadowOAM + $0C + 1], a ; top right
-	ld [wShadowOAM + $14 + 1], a ; bottom right
+	ld [wShadowOAM + OAM_SLASH_2_X + 1], a ; top right
+	ld [wShadowOAM + OAM_SLASH_4_X + 1], a ; bottom right
 	jp draw_attack.done
 
 .animate_attack_x_update_pos_right
 	; Update X position of attack animation
 	ld a, [w_player_position_x]
 	add a, 8
-	ld [wShadowOAM + $08 + 1], a ; top left
-	ld [wShadowOAM + $10 + 1], a ; bottom left
+	ld [wShadowOAM + OAM_SLASH_1_X + 1], a ; top left
+	ld [wShadowOAM + OAM_SLASH_3_X + 1], a ; bottom left
 	add a, 8
-	ld [wShadowOAM + $0C + 1], a ; top right
-	ld [wShadowOAM + $14 + 1], a ; bottom right
+	ld [wShadowOAM + OAM_SLASH_2_X + 1], a ; top right
+	ld [wShadowOAM + OAM_SLASH_4_X + 1], a ; bottom right
 	jp draw_attack.done
 
 ; This diplays and updates the position of the vertical slash (up, down)
 .animate_attack_y_update_pos
 	; Check if the attack is x flipped to place the sprites correctly
-	ld a, [wShadowOAM + $20 + 3]
+	ld a, [wShadowOAM + OAM_SLASH_1_Y + 3]
 	and %00100000 ; Only the x flip bit is useful for this
 	cp %00100000
 	jr z, .animate_attack_y_update_pos_flipped
@@ -58,22 +59,22 @@ animate_attack::
 	; Update X position of attack animation
 	ld a, [w_player_position_x]
 	sub a, 4
-	ld [wShadowOAM + $20 + 1], a ; top left
-	ld [wShadowOAM + $28 + 1], a ; bottom left
+	ld [wShadowOAM + OAM_SLASH_1_Y + 1], a ; top left
+	ld [wShadowOAM + OAM_SLASH_3_Y + 1], a ; bottom left
 	add a, 8
-	ld [wShadowOAM + $24 + 1], a ; top right
-	ld [wShadowOAM + $2C + 1], a ; bottom right
+	ld [wShadowOAM + OAM_SLASH_2_Y + 1], a ; top right
+	ld [wShadowOAM + OAM_SLASH_4_Y + 1], a ; bottom right
 	jr .animate_attack_y_update_pos_check
 
 .animate_attack_y_update_pos_flipped
 	; Update X position of attack animation
 	ld a, [w_player_position_x]
 	sub a, 4
-	ld [wShadowOAM + $24 + 1], a ; top right
-	ld [wShadowOAM + $2C + 1], a ; bottom right
+	ld [wShadowOAM + OAM_SLASH_2_Y + 1], a ; top right
+	ld [wShadowOAM + OAM_SLASH_4_Y + 1], a ; bottom right
 	add a, 8
-	ld [wShadowOAM + $20 + 1], a ; top left
-	ld [wShadowOAM + $28 + 1], a ; bottom left
+	ld [wShadowOAM + OAM_SLASH_1_Y + 1], a ; top left
+	ld [wShadowOAM + OAM_SLASH_3_Y + 1], a ; bottom left
 
 .animate_attack_y_update_pos_check
 	; Check if we're attacking up or down to position it above or below the player
@@ -85,22 +86,22 @@ animate_attack::
 	; Update Y position of attack animation
 	ld a, [w_player_position_y]
 	sub a, 8
-	ld [wShadowOAM + $28], a ; bottom left
-	ld [wShadowOAM + $2C], a ; bottom right
+	ld [wShadowOAM + OAM_SLASH_3_Y], a ; bottom left
+	ld [wShadowOAM + OAM_SLASH_4_Y], a ; bottom right
 	sub a, 8
-	ld [wShadowOAM + $20], a ; top left
-	ld [wShadowOAM + $24], a ; top right
+	ld [wShadowOAM + OAM_SLASH_1_Y], a ; top left
+	ld [wShadowOAM + OAM_SLASH_2_Y], a ; top right
 	jp draw_attack.done
 
 .animate_attack_y_update_pos_down
 	; Update Y position of attack animation
 	ld a, [w_player_position_y]
 	add a, 16
-	ld [wShadowOAM + $28], a ; bottom left
-	ld [wShadowOAM + $2C], a ; bottom right
+	ld [wShadowOAM + OAM_SLASH_3_Y], a ; bottom left
+	ld [wShadowOAM + OAM_SLASH_4_Y], a ; bottom right
 	add a, 8
-	ld [wShadowOAM + $20], a ; top left
-	ld [wShadowOAM + $24], a ; top right
+	ld [wShadowOAM + OAM_SLASH_1_Y], a ; top left
+	ld [wShadowOAM + OAM_SLASH_2_Y], a ; top right
 	jp draw_attack.done
 
 
@@ -117,27 +118,27 @@ animate_after_effect::
 .animate_after_effect_mask_x
 	; Mask out the horizontal attack sprites
 	xor a
-	ld [wShadowOAM + $08], a ; top left
-	ld [wShadowOAM + $0C], a ; top right
-	ld [wShadowOAM + $10], a ; bottom left
-	ld [wShadowOAM + $14], a ; bottom right
-	ld [wShadowOAM + $08 + 1], a ; top left
-	ld [wShadowOAM + $10 + 1], a ; bottom left
-	ld [wShadowOAM + $0C + 1], a ; top right
-	ld [wShadowOAM + $14 + 1], a ; bottom right
+	ld [wShadowOAM + OAM_SLASH_1_X], a ; top left
+	ld [wShadowOAM + OAM_SLASH_2_X], a ; top right
+	ld [wShadowOAM + OAM_SLASH_3_X], a ; bottom left
+	ld [wShadowOAM + OAM_SLASH_4_X], a ; bottom right
+	ld [wShadowOAM + OAM_SLASH_1_X + 1], a ; top left
+	ld [wShadowOAM + OAM_SLASH_2_X + 1], a ; bottom left
+	ld [wShadowOAM + OAM_SLASH_3_X + 1], a ; top right
+	ld [wShadowOAM + OAM_SLASH_4_X + 1], a ; bottom right
 	jr .animate_after_effect_update_pos
 
 .animate_after_effect_mask_y
 	; Mask out the vertical attack sprites
 	xor a
-	ld [wShadowOAM + $20], a ; top left
-	ld [wShadowOAM + $24], a ; top right
-	ld [wShadowOAM + $28], a ; bottom left
-	ld [wShadowOAM + $2C], a ; bottom right
-	ld [wShadowOAM + $20 + 1], a ; top left
-	ld [wShadowOAM + $24 + 1], a ; bottom left
-	ld [wShadowOAM + $28 + 1], a ; top right
-	ld [wShadowOAM + $2C + 1], a ; bottom right
+	ld [wShadowOAM + OAM_SLASH_1_Y], a ; top left
+	ld [wShadowOAM + OAM_SLASH_2_Y], a ; top right
+	ld [wShadowOAM + OAM_SLASH_3_Y], a ; bottom left
+	ld [wShadowOAM + OAM_SLASH_4_Y], a ; bottom right
+	ld [wShadowOAM + OAM_SLASH_1_Y + 1], a ; top left
+	ld [wShadowOAM + OAM_SLASH_2_Y + 1], a ; bottom left
+	ld [wShadowOAM + OAM_SLASH_3_Y + 1], a ; top right
+	ld [wShadowOAM + OAM_SLASH_4_Y + 1], a ; bottom right
 
 .animate_after_effect_update_pos
 	ld a, [w_player_attacking]
@@ -148,8 +149,8 @@ animate_after_effect::
 .animate_after_effect_x_update_pos
 	; Update Y position of after effect animation
 	ld a, [w_player_position_y]
-	ld [wShadowOAM + $18], a ; left
-	ld [wShadowOAM + $1C], a ; right
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_X], a ; left
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_X], a ; right
 
 	; Check if we're attacking left or right to position it left or right of the player
 	ld a, [w_player_attacking]
@@ -160,24 +161,24 @@ animate_after_effect::
 	; Update X position of attack animation
 	ld a, [w_player_position_x]
 	sub a, 8
-	ld [wShadowOAM + $18 + 1], a ; left
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_X + 1], a ; left
 	sub a, 8
-	ld [wShadowOAM + $1C + 1], a ; right
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_X + 1], a ; right
 	jp draw_attack.done
 
 .animate_after_effect_x_update_pos_right
 	; Update X position of attack animation
 	ld a, [w_player_position_x]
 	add a, 8
-	ld [wShadowOAM + $18 + 1], a ; left
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_X + 1], a ; left
 	add a, 8
-	ld [wShadowOAM + $1C + 1], a ; right
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_X + 1], a ; right
 	jp draw_attack.done
 
 ; This diplays and updates the position of the vertical after effect (up, down)
 .animate_after_effect_y_update_pos
 	; Check if the after effect is x flipped to place the sprites correctly
-	ld a, [wShadowOAM + $30 + 3]
+	ld a, [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_Y + 3]
 	and %00100000 ; Only the x flip bit is useful for this
 	cp %00100000
 	jr z, .animate_after_effect_y_update_pos_flipped
@@ -186,16 +187,16 @@ animate_after_effect::
 	; Update Y position of after effect animation
 	ld a, [w_player_position_x]
 	sub a, 4
-	ld [wShadowOAM + $30 + 1], a ; bottom
-	ld [wShadowOAM + $34 + 1], a ; top
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_Y + 1], a ; bottom
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_Y + 1], a ; top
 	jr .animate_after_effect_y_update_pos_check
 
 .animate_after_effect_y_update_pos_flipped
 	; Update Y position of after effect animation
 	ld a, [w_player_position_x]
 	add a, 4
-	ld [wShadowOAM + $30 + 1], a ; bottom
-	ld [wShadowOAM + $34 + 1], a ; top
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_Y + 1], a ; bottom
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_Y + 1], a ; top
 
 .animate_after_effect_y_update_pos_check
 	; Check if we're attacking up or down to position it above or below the player
@@ -207,18 +208,18 @@ animate_after_effect::
 	; Update Y position of after effect animation
 	ld a, [w_player_position_y]
 	sub a, 8
-	ld [wShadowOAM + $34], a ; top
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_Y], a ; top
 	sub a, 8
-	ld [wShadowOAM + $30], a ; bottom
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_Y], a ; bottom
 	jp draw_attack.done
 
 .animate_after_effect_y_update_pos_down
 	; Update Y position of after effect animation
 	ld a, [w_player_position_y]
 	add a, 16
-	ld [wShadowOAM + $34], a ; top
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_Y], a ; top
 	add a, 8
-	ld [wShadowOAM + $30], a ; bottom
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_Y], a ; bottom
 	jp draw_attack.done
 
 
@@ -231,18 +232,18 @@ animate_attack_end::
 .animate_attack_end_mask_x
 	; Mask out horizontal after effect sprites
 	xor a
-	ld [wShadowOAM + $18], a ; left
-	ld [wShadowOAM + $1C], a ; right
-	ld [wShadowOAM + $18 + 1], a ; left
-	ld [wShadowOAM + $1C + 1], a ; right
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_X], a ; left
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_X], a ; right
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_X + 1], a ; left
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_X + 1], a ; right
 
 .animate_attack_end_mask_y
 	; Mask out vertical after effect sprites
 	xor a
-	ld [wShadowOAM + $30], a ; left
-	ld [wShadowOAM + $34], a ; right
-	ld [wShadowOAM + $30 + 1], a ; left
-	ld [wShadowOAM + $34 + 1], a ; right
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_Y], a ; left
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_Y], a ; right
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_1_Y + 1], a ; left
+	ld [wShadowOAM + OAM_SLASH_AFTER_EFFECT_2_Y + 1], a ; right
 
 	jp draw_attack.done
 
@@ -264,20 +265,20 @@ animate_jump::
 	jr nz, .animate_jump_falling ; The falling animation has the cape up which we also want when rising and moving
 
 .animate_jump_rising_idle
-	ld a, PLAYER_BOT_IDLE
-	ld [wShadowOAM + $04 + 2], a
+	ld a, T_PLAYER_BOT_IDLE
+	ld [wShadowOAM + OAM_PLAYER_BOT + 2], a
 	jp draw_player.done
 
 .animate_jump_falling
-	ld a, PLAYER_BOT_WALK_2 ; Falling and walk 2 animations are the same
-	ld [wShadowOAM + $04 + 2], a
+	ld a, T_PLAYER_BOT_WALK_2 ; Falling and walk 2 animations are the same
+	ld [wShadowOAM + OAM_PLAYER_BOT + 2], a
 	jp draw_player.done
 
 
 animate_walk::
 	; Check if current frame is idle, if yes jump right to animate_walk_update_frame
-	ld a, [wShadowOAM + $04 + 2] ; = wShadowOAM + $06 = 2nd OAMRAM spot's tile number
-	cp PLAYER_BOT_IDLE
+	ld a, [wShadowOAM + OAM_PLAYER_BOT + 2] ; = wShadowOAM + $06 = 2nd OAMRAM spot's tile number
+	cp T_PLAYER_BOT_IDLE
 	jr z, .animate_walk_update_frame
 	; Wait 10 frames before updating the walk animation
 	ld a, [w_player_counter_walk]
@@ -288,19 +289,19 @@ animate_walk::
 	jp draw_player.done ; Else, ret
 
 .animate_walk_update_frame
-	ld a, [wShadowOAM + $04 + 2]
-	cp PLAYER_BOT_WALK_2 ; If we're past the animations including the sword, sub 3. The following flag checks do a <= PLAYER_BOT_WALK_2
-	jr z, :+ ; If z is set, a == PLAYER_BOT_WALK_2
-	jr c, :+ ; If c is set, a < PLAYER_BOT_WALK_2
+	ld a, [wShadowOAM + OAM_PLAYER_BOT + 2]
+	cp T_PLAYER_BOT_WALK_2 ; If we're past the animations including the sword, sub 3. The following flag checks do a <= T_PLAYER_BOT_WALK_2
+	jr z, :+ ; If z is set, a == T_PLAYER_BOT_WALK_2
+	jr c, :+ ; If c is set, a < T_PLAYER_BOT_WALK_2
 	sub 3
 :
 	inc a ; Used for cycling between the walking animation sprites
-	cp PLAYER_BOT_WALK_2 + 1 ; 2 animation frames, so 3 is out of range
+	cp T_PLAYER_BOT_WALK_2 + 1 ; 2 animation frames, so 3 is out of range
 	jr nz, .animate_walk_update_sprite_index ; If still in range, set frame 1 or 2 of anim
-	ld a, PLAYER_BOT_WALK_1 ; Else, we're past the last index so set it back to first frame of anim
+	ld a, T_PLAYER_BOT_WALK_1 ; Else, we're past the last index so set it back to first frame of anim
 
 .animate_walk_update_sprite_index
-	ld [wShadowOAM + $04 + 2], a
+	ld [wShadowOAM + OAM_PLAYER_BOT + 2], a
 
 	; Reset the frame counter back to 0
 	xor a

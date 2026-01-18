@@ -1,6 +1,7 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
 INCLUDE "srcs/main/utils/tile_number_table.inc"
+INCLUDE "srcs/main/utils/oam_number_table.inc"
 
 SECTION "PlayerVariables", WRAM0
 
@@ -58,7 +59,7 @@ initialize_player::
 	ld b, a
 	ld a, [w_player_position_x]
 	ld c, a
-	ld d, PLAYER_TOP
+	ld d, T_PLAYER_TOP
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -68,7 +69,7 @@ initialize_player::
 	ld b, a
 	ld a, [w_player_position_x]
 	ld c, a
-	ld d, PLAYER_BOT_IDLE
+	ld d, T_PLAYER_BOT_IDLE
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -77,44 +78,44 @@ initialize_player::
 	xor a
 	ld b, a
 	ld c, a
-	ld d, SLASH_1_X
+	ld d, T_SLASH_1_X
 	ld e, a
 	call RenderSimpleSprite
 	; Set slash_2_x
-	ld d, SLASH_2_X
+	ld d, T_SLASH_2_X
 	call RenderSimpleSprite
 	; Set slash_3_x
-	ld d, SLASH_3_X
+	ld d, T_SLASH_3_X
 	call RenderSimpleSprite
 	; Set slash_4_x
-	ld d, SLASH_4_X
+	ld d, T_SLASH_4_X
 	call RenderSimpleSprite
 
 	; Set slash_after_effect_1_x
-	ld d, SLASH_AFTER_EFFECT_1_X
+	ld d, T_SLASH_AFTER_EFFECT_1_X
 	call RenderSimpleSprite
 	; Set slash_after_effect_2_x
-	ld d, SLASH_AFTER_EFFECT_2_X
+	ld d, T_SLASH_AFTER_EFFECT_2_X
 	call RenderSimpleSprite
 
 	; Set slash_1_y
-	ld d, SLASH_1_Y
+	ld d, T_SLASH_1_Y
 	call RenderSimpleSprite
 	; Set slash_2_y
-	ld d, SLASH_2_Y
+	ld d, T_SLASH_2_Y
 	call RenderSimpleSprite
 	; Set slash_3_y
-	ld d, SLASH_3_Y
+	ld d, T_SLASH_3_Y
 	call RenderSimpleSprite
 	; Set slash_4_y
-	ld d, SLASH_4_Y
+	ld d, T_SLASH_4_Y
 	call RenderSimpleSprite
 
 	; Set slash_after_effect_1_y
-	ld d, SLASH_AFTER_EFFECT_1_Y
+	ld d, T_SLASH_AFTER_EFFECT_1_Y
 	call RenderSimpleSprite
 	; Set slash_after_effect_2_y
-	ld d, SLASH_AFTER_EFFECT_2_Y
+	ld d, T_SLASH_AFTER_EFFECT_2_Y
 	call RenderSimpleSprite
 
 	ret
@@ -195,14 +196,14 @@ update_player::
 draw_player:
 	; Update Y position in OAM
 	ld a, [w_player_position_y]
-	ld [wShadowOAM], a
+	ld [wShadowOAM + OAM_PLAYER_TOP], a
 	add a, 8
-	ld [wShadowOAM + $04], a
+	ld [wShadowOAM + OAM_PLAYER_BOT], a
 
 	; Update X position in OAM
 	ld a, [w_player_position_x]
-	ld [wShadowOAM + 1], a
-	ld [wShadowOAM + $04 + 1], a
+	ld [wShadowOAM + OAM_PLAYER_TOP + 1], a
+	ld [wShadowOAM + OAM_PLAYER_BOT + 1], a
 
 	; Check if player is jumping or airborne, if so animate jump
 	ld a, [w_player_jumping]
@@ -221,12 +222,12 @@ draw_player:
 	ld a, [w_player_attacking]
 	or a
 	ret z
-	ld a, [wShadowOAM + $04 + 2]
-	cp PLAYER_BOT_IDLE_ATK ; If we're past the animations including the sword, do not add 3. The following flag checks do a >= PLAYER_BOT_IDLE_ATK
-	jr z, :+ ; If z is set, a == PLAYER_BOT_IDLE_ATK
-	jr nc, :+ ; If c is not set, a > PLAYER_BOT_IDLE_ATK
+	ld a, [wShadowOAM + OAM_PLAYER_BOT + 2]
+	cp T_PLAYER_BOT_IDLE_ATK ; If we're past the animations including the sword, do not add 3. The following flag checks do a >= T_PLAYER_BOT_IDLE_ATK
+	jr z, :+ ; If z is set, a == T_PLAYER_BOT_IDLE_ATK
+	jr nc, :+ ; If c is not set, a > T_PLAYER_BOT_IDLE_ATK
 	add 3
-	: ld [wShadowOAM + $04 + 2], a
+	: ld [wShadowOAM + OAM_PLAYER_BOT + 2], a
 
 	ret
 

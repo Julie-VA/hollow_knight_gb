@@ -1,5 +1,6 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
+INCLUDE "srcs/main/utils/oam_number_table.inc"
 
 SECTION "CrawlidCollisions", ROM0
 
@@ -84,7 +85,7 @@ crawlid_check_collision_player::
 	; We need to do a few tweaks depending on the x flip because the crawlid has 1 blank pixels in front and 2 behind.
 	ld a, [w_crawlid_position_x_int]
 	ld [w_object1_value], a
-	ld a, [wShadowOAM + $38 + 3]
+	ld a, [wShadowOAM + OAM_CRAWLID_L + 3]
 	and %00100000 ; Only the x flip bit is useful for this
 	cp %00100000
 	jr z, :+
