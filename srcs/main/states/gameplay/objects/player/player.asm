@@ -5,6 +5,9 @@ INCLUDE "srcs/main/utils/oam_number_table.inc"
 
 SECTION "PlayerVariables", WRAM0
 
+w_player_masks::			db
+w_player_soul::				db
+
 w_player_position_x::		db
 w_player_position_y::		db
 
@@ -47,6 +50,11 @@ initialize_player::
     ld [w_player_position_x], a
 	ld a, 136
     ld [w_player_position_y], a
+
+	ld a, 4
+	ld [w_player_masks], a
+	ld a, 32
+	ld [w_player_soul], a
 
     ; Copy the player's tile data into VRAM
     ld de, player_tile_data
