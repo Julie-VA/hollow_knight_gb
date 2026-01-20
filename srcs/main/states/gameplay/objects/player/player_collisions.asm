@@ -4,7 +4,7 @@ INCLUDE "srcs/main/utils/constants.inc"
 SECTION "PlayerCollisions", ROM0
 
 ; We need to check for both bottom and top tile of the sprite
-check_collision_left::
+check_wall_collision_left::
 	; Load x position in b
 	ld a, [w_player_position_x]
 	sub 9 ; -8 Offset grid by 8; -1 Check incoming tile -> result = -9
@@ -31,7 +31,7 @@ check_collision_left::
 
 
 ; We need to check for both bottom and top tile of the sprite
-check_collision_right::
+check_wall_collision_right::
 	; Load x position in b
 	ld a, [w_player_position_x]
 	; -8 Offset grid by 8; +7 Go to the end of the sprite; +1 Check incoming tile -> result = 0
@@ -57,7 +57,7 @@ check_collision_right::
 	ret
 
 
-check_collision_up::
+check_wall_collision_up::
 	; Load x position of left side in b
 	ld a, [w_player_position_x]
 	sub 8 ; Offset grid by 8
@@ -83,7 +83,7 @@ check_collision_up::
 	ret
 
 
-check_collision_down::
+check_wall_collision_down::
 	; Load x position of left side in b
 	ld a, [w_player_position_x]
 	sub 6 ; -8 Offset grid by 8; +2 Check at back foot of sprite -> result = -6

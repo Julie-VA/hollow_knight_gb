@@ -62,7 +62,7 @@ crawlid_check_collision_right::
 
 ; Crawlid height = 7, Player height = 16, Crawlid length = 13, Player length = 8.
 ; So for size height: 7/2 + 16/2 = 11, for size ength 13/2 + 8/2 = 10 (-1 to make it bit more forgiving)
-crawlid_check_collision_player::
+crawlid_check_player_collision::
 .ld_y_crawlid
 	ld a, [w_crawlid_position_y]
 	ld [w_object1_value], a
@@ -109,13 +109,13 @@ crawlid_check_collision_player::
 
 	call check_object_position_difference
 
+	; If no collision, return
 	and a
 	ret z
 
-	ld a, [w_player_position_y]
-	sub 16
-	ld [w_player_position_y], a
-
+	; If we get here, this means there is a collision
+	call handle_player_hit
 	ret
+
 
 

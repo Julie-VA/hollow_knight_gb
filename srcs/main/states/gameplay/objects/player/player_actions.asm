@@ -10,6 +10,11 @@ attack::
 	or a
 	ret nz
 
+	; Ret if player is holding A to attack (must press it)
+	ld a, [w_last_keys]
+	and PADF_A
+	ret nz
+
 ; Check if down is pressed, if it is, check if player is jumping, if they aren't set w_player_attacking to 3 (up), if they are set w_player_attacking to 4 (down)
 .attack_check_down
 	ld a, [w_cur_keys]
@@ -134,7 +139,7 @@ move_left::
 	; Flip knight_bottom
 	ld [wShadowOAM + OAM_PLAYER_BOT + 3], a
 
-	call check_collision_left
+	call check_wall_collision_left
 	; If we're going to hit a solid tile, don't move
 	dec a
 	ret z
@@ -154,7 +159,7 @@ move_right::
 	; Flip knight_bottom
 	ld [wShadowOAM + OAM_PLAYER_BOT + 3], a
 
-	call check_collision_right
+	call check_wall_collision_right
 	; If we're going to hit a solid tile, don't move
 	dec a
 	ret z
@@ -210,7 +215,7 @@ start_jump::
 
 
 jump::
-	call check_collision_up
+	call check_wall_collision_up
 	or a
 	jr z, .jump_body
 
@@ -251,7 +256,7 @@ jump::
 
 apply_gravity::
 	; Check if player is on the ground, if they aren't apply gravity
-	call check_collision_down
+	call check_wall_collision_down
 	or a
 	jr z, .apply_gravity_check_up
 
@@ -269,7 +274,7 @@ apply_gravity::
 
 .apply_gravity_check_up
 	; Necessary because if the jump ends right before an obstacle, we don't want to have velocity upwards, making us potentially clip through stuff
-	call check_collision_up
+	call check_wall_collision_up
 	or a
 	jr z, .apply_gravity_body
 
@@ -320,7 +325,7 @@ apply_gravity::
 	ld [w_player_position_y], a
 
 	; Check if player is on the ground, if they are, check if player position y is odd or even, if it's odd we're inside the floor (we move 2 pixels at a time at MAX_DOWN_VELOCITY)
-	call check_collision_down
+	call check_wall_collision_down
 	or a
 	ret z
 

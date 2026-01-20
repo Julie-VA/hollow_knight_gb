@@ -23,10 +23,11 @@ w_player_last_attack::		db ; 0 = SFX_sword_1, 1 = SFX_sword_2. Used to alternate
 
 SECTION "PlayerCounters", WRAM0
 
-w_player_counter_walk::				db
-w_player_counter_attack::			db
+w_player_counter_walk::				db ; Used to keep track of where we are in the walking cycle
+w_player_counter_attack::			db ; Used to transition between attack phases
 w_player_counter_followupattack::	db ; Used to play another SFX if swings are one after another
 w_player_counter_jump::				db ; Used to start the falling animation a bit later
+w_player_counter_flashing::			db ; Used to count how many more frames the player needs to keep flashing after getting hit
 
 
 SECTION "Player", ROM0
@@ -45,6 +46,7 @@ initialize_player::
 	ld [w_player_gravity_accu], a
 	ld [w_player_counter_jump], a
 	ld [w_player_attacking], a
+	ld [w_player_counter_flashing], a
 
 	ld a, 152
     ld [w_player_position_x], a
@@ -53,7 +55,7 @@ initialize_player::
 
 	ld a, 4
 	ld [w_player_masks], a
-	ld a, 32
+	ld a, 99
 	ld [w_player_soul], a
 
     ; Copy the player's tile data into VRAM
@@ -132,6 +134,11 @@ initialize_player::
 update_player::
 
 .update_player_handle_input
+	; If the player just got hit and is in the recoil window, they can't act
+	ld a, [w_player_counter_flashing]
+	cp a, INVINCIBILITY_TIME - RECOIL_TIME
+	jr nc, .update_player_gravity
+
 	ld a, [w_cur_keys]
 	and PADF_UP
 	call nz, start_jump
@@ -161,6 +168,7 @@ update_player::
 	or a
 	call nz, jump ; Call if player is jumping
 
+.update_player_gravity
 	ld a, [w_player_jumping]
 	or a
 	call z, apply_gravity ; Call if player is not jumping
@@ -202,6 +210,31 @@ update_player::
 
 
 draw_player:
+	; Check if player got hit and is flashing
+	ld a, [w_player_counter_flashing]
+	cp 0
+	jr z, .normal_case
+
+; If player is flashing, alternate between showing and hiding the player every frame
+.flashing_case
+	dec a
+	ld [w_player_counter_flashing], a
+
+	; Check rightmost bit to know if number is odd or even. Player hidden on even numbers (bit 0 == 0) and shown on odd numbers (bit 0 ==1)
+	bit 2, a
+	jr nz, .normal_case
+
+	; Place sprite off screen
+	xor a
+	; Update Y position in OAM
+	ld [wShadowOAM + OAM_PLAYER_TOP], a
+	ld [wShadowOAM + OAM_PLAYER_BOT], a
+	; Update X position in OAM
+	ld [wShadowOAM + OAM_PLAYER_TOP + 1], a
+	ld [wShadowOAM + OAM_PLAYER_BOT + 1], a
+	ret
+
+.normal_case
 	; Update Y position in OAM
 	ld a, [w_player_position_y]
 	ld [wShadowOAM + OAM_PLAYER_TOP], a
@@ -245,8 +278,6 @@ draw_attack:
 	ld a, [w_player_attacking]
 	or a
 	ret z
-
-	
 
 	ld a, [w_player_counter_attack]
 	cp AFTER_EFFECT_TIME + 1 ; Check if we're past the attack animation
