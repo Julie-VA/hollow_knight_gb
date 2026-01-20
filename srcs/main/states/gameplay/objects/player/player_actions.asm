@@ -192,6 +192,10 @@ cut_jump::
 	xor a
 	ld [w_player_jumping], a
 	ld [w_player_jump_strenght], a
+	; Set some UP_VELOCITY so player floats a bit before coming back down (like in jump.jump_stop)
+	ld a, MAX_UP_VELOCITY
+	ld [w_player_velocity], a
+
 	ret
 
 

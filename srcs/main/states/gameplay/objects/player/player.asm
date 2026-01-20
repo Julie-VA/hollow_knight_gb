@@ -13,8 +13,8 @@ w_player_position_y::		db
 
 w_player_jumping::			db
 w_player_airborne::			db
-w_player_velocity::			db
-w_player_jump_strenght::	db
+w_player_velocity::			db ; How fast the player can move up or down
+w_player_jump_strenght::	db ; How much the player will go up with a full jump. Velocity is substracted from strength every frame. If jump_strenght is greater, the player will go higher.
 w_player_gravity_accu::		db ; The accumulator is used to travel by GRAVITY every GRAVITY_ACCU_MAX frames
 
 w_player_attacking::		db ; 0 = not attacking, 1 = attacking right, 2 = left, 3 = up, 4 = down (see constants)
@@ -259,17 +259,23 @@ draw_player:
 	jp nz, animate_walk
 
 .done::
-	; Check if player is attacking, if so, update player_bottom sprite to not include sword
+	; Check if player is attacking or in the attack followup window, if so, update player_bottom sprite to not include sword
+	; Since player_attacking == 0 when counter_followupattack is ticking down, and vice versa, we can't check them one after the other, so we check if they're both 0 at the same time
+	ld a, [w_player_counter_followupattack]
+	ld b, a
+	ld a, ATTACK_FOLLOWUP_WINDOW + 1
+	sub a, b
 	ld a, [w_player_attacking]
-	or a
+	or a, b ; Check if w_player_counter_followupattack and w_player_attacking are 0
 	ret z
-	ld a, [wShadowOAM + OAM_PLAYER_BOT + 2]
-	cp T_PLAYER_BOT_IDLE_ATK ; If we're past the animations including the sword, do not add 3. The following flag checks do a >= T_PLAYER_BOT_IDLE_ATK
-	jr z, :+ ; If z is set, a == T_PLAYER_BOT_IDLE_ATK
-	jr nc, :+ ; If c is not set, a > T_PLAYER_BOT_IDLE_ATK
-	add 3
-	: ld [wShadowOAM + OAM_PLAYER_BOT + 2], a
 
+	; If we're past the animations including the sword, do not add 3. 
+	ld a, [wShadowOAM + OAM_PLAYER_BOT + 2]
+	cp T_PLAYER_BOT_IDLE_ATK ; The following flag checks do a >= T_PLAYER_BOT_IDLE_ATK
+	ret z  ; If z is set, a == T_PLAYER_BOT_IDLE_ATK
+	ret nc ; If c is not set, a > T_PLAYER_BOT_IDLE_ATK
+	add 3
+	ld [wShadowOAM + OAM_PLAYER_BOT + 2], a
 	ret
 
 
