@@ -12,6 +12,9 @@ w_crawlid_position_y::		db
 w_crawlid_type::			db
 w_crawlid_health::			db
 
+w_crawlid_counter_flashing::	db
+w_crawlid_hit_side::			db
+
 
 SECTION "Crawlid", ROM0
 
@@ -33,6 +36,10 @@ initialize_crawlid::
 	; Set health_byte
 	ld a, CRAWLID_HEALTH
 	ld [w_crawlid_health], a
+
+	xor a
+	ld [w_crawlid_counter_flashing], a
+	ld [w_crawlid_hit_side], a
 
 	; Set crawlid_l
 	ld a, [w_crawlid_position_y]
@@ -59,12 +66,32 @@ initialize_crawlid::
 update_crawlid::
 	call crawlid_ai
 	call crawlid_check_player_collision
+
+	; Check if player is attacking, if they are, check if crawlid is getting hit
+	ld a, [w_player_counter_attack]
+	or a
+	jr z, :+
+	cp ATTACK_TIME + 1 ; We want to check against the active window of attack, not the after effects
+	jr nc, :+
+	call crawlid_check_slash_collision
+:
+
 	call draw_crawlid
 	ret
 
 
 
 crawlid_ai:
+	; Check if crawlid is in the air and apply gravity
+	call crawlid_check_collision_down
+	or a
+	jr nz, .crawlid_ai_move
+	ld a, [w_crawlid_position_y]
+	inc a
+	ld [w_crawlid_position_y], a
+	ret
+
+.crawlid_ai_move
 	; Check if crawlid is moving left or right thanks to orientation of head (0 = left, %00100000 = right)
 	ld a, [wShadowOAM + OAM_CRAWLID_L + 3]
 	and %00100000 ; Only the x flip bit is useful for this
@@ -135,7 +162,50 @@ crawlid_ai:
 	ret
 
 
+crawlid_hit::
+	; If crawlid is still flashing, it's still invincible so we can ignore this part
+	ld a, [w_crawlid_counter_flashing]
+	or a
+	ret nz
+
+	ld a, [w_crawlid_health]
+	cp ATTACK_DAMAGE
+	jr nc, .continue
+	call crawlid_dead
+	ret
+
+.continue
+	; Take damage
+	ld a, [w_crawlid_health]
+	sub ATTACK_DAMAGE
+
+	; Initialize w_crawlid_counter_flashing for the flashing logic
+	ld a, CRAWLID_FLASHING
+	ld [w_crawlid_counter_flashing], a
+	ret
+
+
+crawlid_dead:
+	xor a
+	ld [wShadowOAM + OAM_CRAWLID_L], a
+	ld [wShadowOAM + OAM_CRAWLID_R], a
+	ld [wShadowOAM + OAM_CRAWLID_L + 1], a
+	ld [wShadowOAM + OAM_CRAWLID_R + 1], a
+	ret
+
+
 draw_crawlid:
+	; Check if player got hit and is flashing
+	ld a, [w_crawlid_counter_flashing]
+	or a
+	jr z, .normal_case
+
+.flashing_case
+	dec a
+	ld [w_crawlid_counter_flashing], a
+	; ret
+
+.normal_case
 	; Update crawlid position
 	; Update Y position in OAM
 	ld a, [w_crawlid_position_y]
@@ -163,3 +233,5 @@ draw_crawlid:
 	sub 8
 	ld [wShadowOAM + OAM_CRAWLID_R + 1], a
 	ret
+
+

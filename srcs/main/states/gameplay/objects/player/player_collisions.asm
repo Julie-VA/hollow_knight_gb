@@ -107,3 +107,4 @@ check_wall_collision_down::
 
 	call check_collision_wall
 	ret
+

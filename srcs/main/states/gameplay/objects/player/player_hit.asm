@@ -1,6 +1,11 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
 
+SECTION "PlayerHitVariables", WRAM0
+
+w_player_hit_side::	db ; To know on which side the player got hit and launch him accordingly. 0 = hit on the left, 1 = hit on the right
+
+
 SECTION "PlayerHit", ROM0
 
 handle_player_hit::
@@ -21,10 +26,13 @@ handle_player_hit::
 	; Stop jumping
 	xor a
 	ld [w_player_jumping], a
-	ld [w_player_jump_strenght], a
+	ld [w_player_jump_strength], a
 
-	ld a, [w_player_position_x]
-	add 16
-	ld [w_player_position_x], a
+	; Give upwards momentum
+	ld a, STRENGTH_LAUNCH_UP
+	ld [w_player_jump_strength], a
+	ld a, 1
+	ld [w_player_jumping], a
+
 
 	ret

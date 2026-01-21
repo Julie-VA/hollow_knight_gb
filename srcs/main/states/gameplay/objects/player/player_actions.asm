@@ -191,7 +191,7 @@ cut_jump::
 	; Stop the jump
 	xor a
 	ld [w_player_jumping], a
-	ld [w_player_jump_strenght], a
+	ld [w_player_jump_strength], a
 	; Set some UP_VELOCITY so player floats a bit before coming back down (like in jump.jump_stop)
 	ld a, MAX_UP_VELOCITY
 	ld [w_player_velocity], a
@@ -207,8 +207,8 @@ start_jump::
 	ret nz
 
 	; Jump
-	ld a, JUMP_STRENGHT
-	ld [w_player_jump_strenght], a
+	ld a, JUMP_STRENGTH
+	ld [w_player_jump_strength], a
 
 	; Mark player as jumping and airborne
 	ld a, 1
@@ -224,21 +224,21 @@ jump::
 	jr z, .jump_body
 
 	xor a
-	ld [w_player_jump_strenght], a
+	ld [w_player_jump_strength], a
 	ld [w_player_velocity], a ; This is important, we set it after a normal jump to make it floaty but having velocity after the player hit their head would make them clip through
 	ld [w_player_jumping], a
 	ret
 
 .jump_body
 	; Is the player still going up?
-	ld a, [w_player_jump_strenght]
+	ld a, [w_player_jump_strength]
 	or a
-	jr z, .jump_stop ; If w_player_jump_strenght = 0, player is falling
+	jr z, .jump_stop ; If w_player_jump_strength = 0, player is falling
 
-	; Decrease jump strenght
-	ld a, [w_player_jump_strenght]
+	; Decrease jump strength
+	ld a, [w_player_jump_strength]
 	add MAX_UP_VELOCITY
-	ld [w_player_jump_strenght], a
+	ld [w_player_jump_strength], a
 
 	; Update position
 	ld a, [w_player_position_y]

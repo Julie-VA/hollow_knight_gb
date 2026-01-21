@@ -14,7 +14,7 @@ w_player_position_y::		db
 w_player_jumping::			db
 w_player_airborne::			db
 w_player_velocity::			db ; How fast the player can move up or down
-w_player_jump_strenght::	db ; How much the player will go up with a full jump. Velocity is substracted from strength every frame. If jump_strenght is greater, the player will go higher.
+w_player_jump_strength::	db ; How much the player will go up with a full jump. Velocity is substracted from strength every frame. If jump_strength is greater, the player will go higher.
 w_player_gravity_accu::		db ; The accumulator is used to travel by GRAVITY every GRAVITY_ACCU_MAX frames
 
 w_player_attacking::		db ; 0 = not attacking, 1 = attacking right, 2 = left, 3 = up, 4 = down (see constants)
@@ -133,12 +133,12 @@ initialize_player::
 
 update_player::
 
-.update_player_handle_input
-	; If the player just got hit and is in the recoil window, they can't act
+	; If the player just got hit and is in the recoil window, they can't act and are launched
 	ld a, [w_player_counter_flashing]
 	cp a, INVINCIBILITY_TIME - RECOIL_TIME
-	jr nc, .update_player_gravity
+	jp nc, player_recoil
 
+.update_player_handle_input
 	ld a, [w_cur_keys]
 	and PADF_UP
 	call nz, start_jump
@@ -164,11 +164,12 @@ update_player::
 	and PADF_A
 	call nz, attack
 
+.update_player_apply_gravity
 	ld a, [w_player_jumping]
 	or a
 	call nz, jump ; Call if player is jumping
 
-.update_player_gravity
+
 	ld a, [w_player_jumping]
 	or a
 	call z, apply_gravity ; Call if player is not jumping
@@ -212,7 +213,7 @@ update_player::
 draw_player:
 	; Check if player got hit and is flashing
 	ld a, [w_player_counter_flashing]
-	cp 0
+	or a
 	jr z, .normal_case
 
 ; If player is flashing, alternate between showing and hiding the player every frame
@@ -360,3 +361,32 @@ attack_sfx:
 	call sfx_dosound
 
 	ret
+
+
+player_recoil:
+	; The player will be launched 2 pixels to the side for the 1st 4 frames of recoil (12f), the last 6f still being unactionable
+	ld a, [w_player_counter_flashing]
+	cp a, INVINCIBILITY_TIME - RECOIL_TIME - 4
+	jp c, update_player.update_player_handle_input
+
+	ld a, [w_player_hit_side]
+	or a
+	jr z, .launch_right
+
+.launch_left
+	call move_left
+	call move_left
+	; Flip player to face what hit them
+	xor a
+	ld [wShadowOAM + OAM_PLAYER_TOP + 3], a
+	ld [wShadowOAM + OAM_PLAYER_BOT + 3], a
+	jp update_player.update_player_apply_gravity
+
+.launch_right
+	call move_right
+	call move_right
+	; Flip player to face what hit them
+	ld a, %00100000
+	ld [wShadowOAM + OAM_PLAYER_TOP + 3], a
+	ld [wShadowOAM + OAM_PLAYER_BOT + 3], a
+	jp update_player.update_player_apply_gravity
