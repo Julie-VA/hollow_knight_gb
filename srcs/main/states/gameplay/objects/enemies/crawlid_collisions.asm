@@ -108,6 +108,19 @@ crawlid_check_collision_down::
 	ld c, a
 
 	call check_collision_wall
+	ret nz
+
+	; Load x position in b
+	ld a, [w_crawlid_position_x_int]
+	sub 14; -8 Offset grid by 8; -8 Go to the end of the sprite; +2 Account for blank pixel in sprite -> result = -2
+	ld b, a
+
+	; Load y position in c
+	ld a, [w_crawlid_position_y]
+	sub 8 ; Offset grid by 16; +7 Go to the end of the sprite; +1 Check incoming tile -> result = -8
+	ld c, a
+
+	call check_collision_wall
 	ret
 
 

@@ -12,9 +12,6 @@ w_crawlid_position_y::		db
 w_crawlid_type::			db
 w_crawlid_health::			db
 
-w_crawlid_counter_flashing::	db
-w_crawlid_hit_side::			db ; To know on which side the crawlid got hit and launch it accordingly. 0 = hit on the right, 1 = hit on the left
-
 
 SECTION "Crawlid", ROM0
 
@@ -67,22 +64,29 @@ update_crawlid::
 	; If the crawlid just got hit and is in the recoil window, it can't act and are launched
 	ld a, [w_crawlid_counter_flashing]
 	cp a, CRAWLID_FLASHING - CRAWLID_RECOIL
-	jr nc, crawlid_recoil
+	jp nc, crawlid_recoil
 
 	; Skip if crawlid is in recoil
 	call crawlid_ai
 
-.update_crawlid_player_collisions
+.update_crawlid_player_collisions::
 	call crawlid_check_player_collision
 
 	; Check if player is attacking, if they are, check if crawlid is getting hit
 	ld a, [w_player_counter_attack]
 	or a
-	jr z, :+
+	jr z, .update_crawlid_draw
 	cp ATTACK_TIME + 1 ; We want to check against the active window of attack, not the after effects
-	jr nc, :+
+	jr nc, .update_crawlid_draw
 	call crawlid_check_slash_collision
-:
+
+	; If crawlid is dead, make it inactive
+	ld a, [w_crawlid_health]
+	or a
+	jr nz, .update_crawlid_draw
+
+	ld [w_crawlid_active], a ; a is still 0 from w_crawlid_health
+	ret
 
 .update_crawlid_draw
 	call draw_crawlid
@@ -109,58 +113,6 @@ crawlid_ai:
 	ret
 
 
-crawlid_hit::
-	; If crawlid is still flashing, it's still invincible so we can ignore this part
-	ld a, [w_crawlid_counter_flashing]
-	or a
-	ret nz
-
-	; Take damage
-	ld a, [w_crawlid_health]
-	sub ATTACK_DAMAGE
-
-	; Initialize w_crawlid_counter_flashing for the flashing logic
-	ld a, CRAWLID_FLASHING
-	ld [w_crawlid_counter_flashing], a
-
-	; Set sprite palette to OBP1 for flashing (starts flashing right away for instant feedback)
-	ld a, [wShadowOAM + OAM_CRAWLID_L + 3]
-	set 4, a
-	ld [wShadowOAM + OAM_CRAWLID_L + 3], a
-	ld a, [wShadowOAM + OAM_CRAWLID_R + 3]
-	set 4, a
-	ld [wShadowOAM + OAM_CRAWLID_R + 3], a
-	ret
-
-
-crawlid_recoil:
-	; The crawlid will be launched 2 pixels to the side for the 1st 4 frames of recoil (12f), the last 8f not moving
-	ld a, [w_crawlid_counter_flashing]
-	cp a, CRAWLID_FLASHING - CRAWLID_RECOIL - 4
-	jp c, update_crawlid.update_crawlid_player_collisions
-
-	ld a, [w_crawlid_hit_side]
-	or a
-	jr z, .launch_left
-
-.launch_right
-	call crawlid_launch_right
-	jp update_crawlid.update_crawlid_player_collisions
-
-.launch_left
-	call crawlid_launch_left
-	jp update_crawlid.update_crawlid_player_collisions
-
-
-crawlid_dead:
-	xor a
-	ld [wShadowOAM + OAM_CRAWLID_L], a
-	ld [wShadowOAM + OAM_CRAWLID_R], a
-	ld [wShadowOAM + OAM_CRAWLID_L + 1], a
-	ld [wShadowOAM + OAM_CRAWLID_R + 1], a
-	ret
-
-
 draw_crawlid:
 	; Check if crawlid got hit and is flashing
 	ld a, [w_crawlid_counter_flashing]
@@ -171,7 +123,7 @@ draw_crawlid:
 	dec a
 	ld [w_crawlid_counter_flashing], a
 
-	; Check bit 2 to flash every 4 frames. Hidden when bit 2 == 0 and shown when bit 2 == 1
+	; Check bit 2 to flash every 4 frames. OBP0 when bit 2 == 0 and OBP1 when bit 2 == 1
 	bit 2, a
 	jr nz, .flashing_obp1
 

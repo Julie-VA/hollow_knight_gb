@@ -31,7 +31,7 @@ initialize_hud::
 	xor a
 	ld b, a
 	ld c, a
-	ld d, T_SOUL_METER_HIGH
+	ld d, T_SOUL_METER_EMPTY
 	ld e, 0
 	call RenderSimpleSprite
 
@@ -188,3 +188,19 @@ init_hud:
 
 	ret
 
+
+player_gain_soul::
+	; Check if w_player_soul is < MAX_SOUL + HIT_GAIN_SOUL (fe. 99 + 1 - 11 = 89), if it's higher, set w_player_soul to MAX_SOUL
+	ld a, [w_player_soul]
+	cp MAX_SOUL + 1 - HIT_GAIN_SOUL
+	jr nc, :+
+
+	; <
+	add HIT_GAIN_SOUL
+	ld [w_player_soul], a
+	ret
+
+:	; >=
+	ld a, MAX_SOUL
+	ld [w_player_soul], a
+	ret

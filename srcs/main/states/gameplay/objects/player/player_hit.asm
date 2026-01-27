@@ -1,5 +1,6 @@
 INCLUDE "srcs/main/utils/hardware.inc"
 INCLUDE "srcs/main/utils/constants.inc"
+INCLUDE "srcs/main/utils/oam_number_table.inc"
 
 SECTION "PlayerHitVariables", WRAM0
 
@@ -34,5 +35,33 @@ handle_player_hit::
 	ld a, 1
 	ld [w_player_jumping], a
 
-
 	ret
+
+
+player_recoil::
+	; The player will be launched 2 pixels to the side for the 1st 4 frames of recoil (12f), the last 8f still being unactionable
+	ld a, [w_player_counter_flashing]
+	cp a, INVINCIBILITY_TIME - RECOIL_TIME - 4
+	jp c, update_player.update_player_handle_input
+
+	ld a, [w_player_hit_side]
+	or a
+	jr z, .launch_right
+
+.launch_left
+	call move_left
+	call move_left
+	; Flip player to face what hit them
+	xor a
+	ld [wShadowOAM + OAM_PLAYER_TOP + 3], a
+	ld [wShadowOAM + OAM_PLAYER_BOT + 3], a
+	jp update_player.update_player_apply_gravity
+
+.launch_right
+	call move_right
+	call move_right
+	; Flip player to face what hit them
+	ld a, %00100000
+	ld [wShadowOAM + OAM_PLAYER_TOP + 3], a
+	ld [wShadowOAM + OAM_PLAYER_BOT + 3], a
+	jp update_player.update_player_apply_gravity
