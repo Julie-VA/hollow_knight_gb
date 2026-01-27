@@ -61,34 +61,34 @@ initialize_crawlid::
 
 
 update_crawlid::
-	; If the crawlid just got hit and is in the recoil window, it can't act and are launched
+	; Check if crawlid is dead and finishing it's death animation
+	ld a, [w_crawlid_health]
+	or a
+	jp z, crawlid_dead ; Returns at the end
+
+	; If the crawlid just got hit and is in the recoil window, it can't act and are launched, skip to .update_crawlid_player_collision
 	ld a, [w_crawlid_counter_flashing]
 	cp a, CRAWLID_FLASHING - CRAWLID_RECOIL
 	jp nc, crawlid_recoil
 
-	; Skip if crawlid is in recoil
 	call crawlid_ai
-
-.update_crawlid_player_collisions::
-	call crawlid_check_player_collision
 
 	; Check if player is attacking, if they are, check if crawlid is getting hit
 	ld a, [w_player_counter_attack]
 	or a
-	jr z, .update_crawlid_draw
+	jr z, .update_crawlid_player_collision
 	cp ATTACK_TIME + 1 ; We want to check against the active window of attack, not the after effects
-	jr nc, .update_crawlid_draw
+	jr nc, .update_crawlid_player_collision
 	call crawlid_check_slash_collision
 
-	; If crawlid is dead, make it inactive
+	; If crawlid was killed, return
 	ld a, [w_crawlid_health]
 	or a
-	jr nz, .update_crawlid_draw
+	ret z
 
-	ld [w_crawlid_active], a ; a is still 0 from w_crawlid_health
-	ret
+.update_crawlid_player_collision::
+	call crawlid_check_player_collision
 
-.update_crawlid_draw
 	call draw_crawlid
 	ret
 

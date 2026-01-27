@@ -17,7 +17,6 @@ init_gameplay_state::
 	ld a, %10010011
 	ld [rOBP0], a
 	ld a, %00100111
-	; ld a, %01001011
 	ld [rOBP1], a
 
 	; Enable sound globally
