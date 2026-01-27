@@ -221,7 +221,7 @@ draw_player:
 	dec a
 	ld [w_player_counter_flashing], a
 
-	; Check rightmost bit to know if number is odd or even. Player hidden on even numbers (bit 0 == 0) and shown on odd numbers (bit 0 ==1)
+	; Check bit 2 to flash every 4 frames. Player hidden when bit 2 == 0 and shown when bit 2 == 1
 	bit 2, a
 	jr nz, .normal_case
 
@@ -364,7 +364,7 @@ attack_sfx:
 
 
 player_recoil:
-	; The player will be launched 2 pixels to the side for the 1st 4 frames of recoil (12f), the last 6f still being unactionable
+	; The player will be launched 2 pixels to the side for the 1st 4 frames of recoil (12f), the last 8f still being unactionable
 	ld a, [w_player_counter_flashing]
 	cp a, INVINCIBILITY_TIME - RECOIL_TIME - 4
 	jp c, update_player.update_player_handle_input

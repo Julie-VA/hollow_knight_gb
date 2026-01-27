@@ -13,7 +13,7 @@ w_crawlid_type::			db
 w_crawlid_health::			db
 
 w_crawlid_counter_flashing::	db
-w_crawlid_hit_side::			db
+w_crawlid_hit_side::			db ; To know on which side the crawlid got hit and launch it accordingly. 0 = hit on the right, 1 = hit on the left
 
 
 SECTION "Crawlid", ROM0
@@ -64,7 +64,15 @@ initialize_crawlid::
 
 
 update_crawlid::
+	; If the crawlid just got hit and is in the recoil window, it can't act and are launched
+	ld a, [w_crawlid_counter_flashing]
+	cp a, CRAWLID_FLASHING - CRAWLID_RECOIL
+	jr nc, crawlid_recoil
+
+	; Skip if crawlid is in recoil
 	call crawlid_ai
+
+.update_crawlid_player_collisions
 	call crawlid_check_player_collision
 
 	; Check if player is attacking, if they are, check if crawlid is getting hit
@@ -76,9 +84,9 @@ update_crawlid::
 	call crawlid_check_slash_collision
 :
 
+.update_crawlid_draw
 	call draw_crawlid
 	ret
-
 
 
 crawlid_ai:
@@ -96,69 +104,8 @@ crawlid_ai:
 	ld a, [wShadowOAM + OAM_CRAWLID_L + 3]
 	and %00100000 ; Only the x flip bit is useful for this
 	cp %00100000
-	jr nz, .crawlid_ai_move_left
-	jr .crawlid_ai_move_right
-
-.crawlid_ai_move_left
-	call crawlid_check_collision_left
-	; If we're going to hit a solid tile, turn around
-	or a
-	jr nz, .crawlid_ai_flip_right
-
-	; Increment decimal
-	ld a, [w_crawlid_position_x_dec]
-	add 128 ; Add 0.5
-	ld [w_crawlid_position_x_dec], a
-
-	; Increment integer
-	ret nc
-	ld a, [w_crawlid_position_x_int]
-	dec a
-	ld [w_crawlid_position_x_int], a
-
-	ret
-
-.crawlid_ai_move_right
-	call crawlid_check_collision_right
-	; If we're going to hit a solid tile, turn around
-	or a
-	jr nz, .crawlid_ai_flip_left
-
-	; Increment decimal
-	ld a, [w_crawlid_position_x_dec]
-	add $80 ; Add 0.5
-	ld [w_crawlid_position_x_dec], a
-
-	; Increment integer
-	ret nc
-	ld a, [w_crawlid_position_x_int]
-	inc a
-	ld [w_crawlid_position_x_int], a
-
-	ret
-
-.crawlid_ai_flip_right
-	ld a, %00100000
-	ld [wShadowOAM + OAM_CRAWLID_L + 3], a
-	ld [wShadowOAM + OAM_CRAWLID_R + 3], a
-
-	; Update x position to reflect position of the head
-	ld a, [w_crawlid_position_x_int]
-	add 7
-	ld [w_crawlid_position_x_int], a
-
-	ret
-
-.crawlid_ai_flip_left
-	xor a
-	ld [wShadowOAM + OAM_CRAWLID_L + 3], a
-	ld [wShadowOAM + OAM_CRAWLID_R + 3], a
-
-	; Update x position to reflect position of the head
-	ld a, [w_crawlid_position_x_int]
-	sub 7
-	ld [w_crawlid_position_x_int], a
-
+	call nz, crawlid_move_left ; Set zero flag to 0 at the end to avoid calling move_right after
+	call z, crawlid_move_right
 	ret
 
 
@@ -168,13 +115,6 @@ crawlid_hit::
 	or a
 	ret nz
 
-	ld a, [w_crawlid_health]
-	cp ATTACK_DAMAGE
-	jr nc, .continue
-	call crawlid_dead
-	ret
-
-.continue
 	; Take damage
 	ld a, [w_crawlid_health]
 	sub ATTACK_DAMAGE
@@ -182,7 +122,34 @@ crawlid_hit::
 	; Initialize w_crawlid_counter_flashing for the flashing logic
 	ld a, CRAWLID_FLASHING
 	ld [w_crawlid_counter_flashing], a
+
+	; Set sprite palette to OBP1 for flashing (starts flashing right away for instant feedback)
+	ld a, [wShadowOAM + OAM_CRAWLID_L + 3]
+	set 4, a
+	ld [wShadowOAM + OAM_CRAWLID_L + 3], a
+	ld a, [wShadowOAM + OAM_CRAWLID_R + 3]
+	set 4, a
+	ld [wShadowOAM + OAM_CRAWLID_R + 3], a
 	ret
+
+
+crawlid_recoil:
+	; The crawlid will be launched 2 pixels to the side for the 1st 4 frames of recoil (12f), the last 8f not moving
+	ld a, [w_crawlid_counter_flashing]
+	cp a, CRAWLID_FLASHING - CRAWLID_RECOIL - 4
+	jp c, update_crawlid.update_crawlid_player_collisions
+
+	ld a, [w_crawlid_hit_side]
+	or a
+	jr z, .launch_left
+
+.launch_right
+	call crawlid_launch_right
+	jp update_crawlid.update_crawlid_player_collisions
+
+.launch_left
+	call crawlid_launch_left
+	jp update_crawlid.update_crawlid_player_collisions
 
 
 crawlid_dead:
@@ -195,7 +162,7 @@ crawlid_dead:
 
 
 draw_crawlid:
-	; Check if player got hit and is flashing
+	; Check if crawlid got hit and is flashing
 	ld a, [w_crawlid_counter_flashing]
 	or a
 	jr z, .normal_case
@@ -203,7 +170,27 @@ draw_crawlid:
 .flashing_case
 	dec a
 	ld [w_crawlid_counter_flashing], a
-	; ret
+
+	; Check bit 2 to flash every 4 frames. Hidden when bit 2 == 0 and shown when bit 2 == 1
+	bit 2, a
+	jr nz, .flashing_obp1
+
+.flashing_obp0
+	ld a, [wShadowOAM + OAM_CRAWLID_L + 3]
+	res 4, a
+	ld [wShadowOAM + OAM_CRAWLID_L + 3], a
+	ld a, [wShadowOAM + OAM_CRAWLID_R + 3]
+	res 4, a
+	ld [wShadowOAM + OAM_CRAWLID_R + 3], a
+	jr .normal_case
+
+.flashing_obp1
+	ld a, [wShadowOAM + OAM_CRAWLID_L + 3]
+	set 4, a
+	ld [wShadowOAM + OAM_CRAWLID_L + 3], a
+	ld a, [wShadowOAM + OAM_CRAWLID_R + 3]
+	set 4, a
+	ld [wShadowOAM + OAM_CRAWLID_R + 3], a
 
 .normal_case
 	; Update crawlid position

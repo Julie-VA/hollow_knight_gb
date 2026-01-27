@@ -16,19 +16,6 @@ crawlid_check_collision_left::
 	ld c, a
 
 	call check_collision_wall
-	or a
-	ret nz
-
-	; Check if we're going to walk over a ledge
-	; x position already in b
-
-	; Load y position in c
-	ld a, [w_crawlid_position_y]
-	sub 8 ; -16 Offset grid by 16; +8 Check tile below incoming tile -> result = -8
-	ld c, a
-
-	call check_collision_wall
-	xor 1 ; Toggle between 0 and 1, if call returns 0 it's a blank tile so we're walking off a ledge
 	ret
 
 
@@ -44,11 +31,44 @@ crawlid_check_collision_right::
 	ld c, a
 
 	call check_collision_wall
-	or a
-	ret nz
-	
-	; Check if we're going to walk over a ledge
-	; x position already in b
+	ret
+
+
+crawlid_check_collision_rear_left::
+	; Load x position in b
+	ld a, [w_crawlid_position_x_int]
+	sub 15 ; -8 Offset grid by 8; -8 Check the rear of crawlid; +2 Account for blank pixels in sprite; -1 Check incoming tile -> result = -15
+	ld b, a
+
+	; Load y position in c
+	ld a, [w_crawlid_position_y]
+	sub 16 ; Offset grid by 16
+	ld c, a
+
+	call check_collision_wall
+	ret
+
+
+crawlid_check_collision_rear_right::
+	; Load x position in b
+	ld a, [w_crawlid_position_x_int]
+	add 6 ; -8 Offset grid by 8; +15 Check the rear of crawlid; -2 Account for blank pixels in sprite; +1 Check incoming tile -> result = +6
+	ld b, a
+
+	; Load y position in c
+	ld a, [w_crawlid_position_y]
+	sub 16 ; Offset grid by 16
+	ld c, a
+
+	call check_collision_wall
+	ret
+
+
+crawlid_check_ledge_left::
+	; Load x position in b
+	ld a, [w_crawlid_position_x_int]
+	sub 8 ; -8 Offset grid by 8; +1 Account for blank pixel in sprite; -1 Check incoming tile -> result = -8
+	ld b, a
 
 	; Load y position in c
 	ld a, [w_crawlid_position_y]
@@ -56,7 +76,23 @@ crawlid_check_collision_right::
 	ld c, a
 
 	call check_collision_wall
-	xor 1 ; Toggle between 0 and 1, if call returns 0 it's a blank tile so we're walking off a ledge
+	xor 1 ; If call returns 0 change it to 1, it's a blank tile so we're walking off a ledge
+	ret
+
+
+crawlid_check_ledge_right::
+	; Load x position in b
+	ld a, [w_crawlid_position_x_int]
+	dec a; -8 Offset grid by 8; +7 Go to the end of the sprite; -1 Account for blank pixel in sprite; +1 Check incoming tile -> result = -1
+	ld b, a
+
+	; Load y position in c
+	ld a, [w_crawlid_position_y]
+	sub 8 ; -16 Offset grid by 16; +8 Check tile below incoming tile -> result = -8
+	ld c, a
+
+	call check_collision_wall
+	xor 1 ; If call returns 0 change it to 1, it's a blank tile so we're walking off a ledge
 	ret
 
 
@@ -228,5 +264,20 @@ crawlid_check_slash_collision::
 	ret z
 
 	; If we get here, this means there is a collision
+	; Check if crawlid is on the left or right side of player to know in which direction it should be sent
+	ld a, [w_player_position_x]
+	ld b, a
+	ld a, [w_crawlid_position_x_int]
+	cp b
+	jr c, :+
+	; Player pos <= crawlid pos, crawlid gets hit on the left side
+	ld a, 1
+	ld [w_crawlid_hit_side], a
+	call crawlid_hit
+	ret
+:
+	; Player pos > crawlid pos, player gets hit on the right side
+	xor a
+	ld [w_crawlid_hit_side], a
 	call crawlid_hit
 	ret
