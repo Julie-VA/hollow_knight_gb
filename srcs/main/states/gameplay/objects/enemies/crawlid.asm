@@ -20,7 +20,7 @@ initialize_crawlid::
 	ld a, 1
 	ld [w_crawlid_active], a
 	; Set y_byte
-	ld a, 136
+	ld a, 120
 	ld [w_crawlid_position_y], a
 	; Set x_byte
 	ld a, 32

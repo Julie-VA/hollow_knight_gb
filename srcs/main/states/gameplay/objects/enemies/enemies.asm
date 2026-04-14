@@ -40,9 +40,9 @@ initialize_enemies::
 
 
 update_enemies::
-	ld a, [w_crawlid_active]
-	or a
-	call nz, update_crawlid
+	; ld a, [w_crawlid_active]
+	; or a
+	; call nz, update_crawlid
 
 	ld a, [w_vengefly_active]
 	or a

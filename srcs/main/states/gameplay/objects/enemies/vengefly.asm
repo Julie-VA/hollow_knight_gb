@@ -29,12 +29,10 @@ initialize_vengefly::
 	ld a, 1
 	ld [w_vengefly_active], a
 	; Set y_byte
-	; ld a, 32
-	ld a, 26
+	ld a, 20
 	ld [w_vengefly_position_y], a
 	; Set x_byte
-	ld a, 48
-	; ld a, 64
+	ld a, 36
 	ld [w_vengefly_position_x_int], a
 	xor a
 	ld [w_vengefly_position_x_dec], a
@@ -89,6 +87,7 @@ initialize_vengefly::
 
 
 update_vengefly::
+	call vengefly_check_player_collision
 	call vengefly_ai
 	call draw_vengefly
 	ret

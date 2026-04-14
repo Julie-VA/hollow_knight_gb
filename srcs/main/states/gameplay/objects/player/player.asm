@@ -50,7 +50,7 @@ initialize_player::
 
 	ld a, 152
     ld [w_player_position_x], a
-	ld a, 136
+	ld a, 128
     ld [w_player_position_y], a
 
 	ld a, 4
