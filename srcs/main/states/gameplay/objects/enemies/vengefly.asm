@@ -29,10 +29,10 @@ initialize_vengefly::
 	ld a, 1
 	ld [w_vengefly_active], a
 	; Set y_byte
-	ld a, 20
+	ld a, 108
 	ld [w_vengefly_position_y], a
 	; Set x_byte
-	ld a, 36
+	ld a, 54
 	ld [w_vengefly_position_x_int], a
 	xor a
 	ld [w_vengefly_position_x_dec], a
@@ -43,13 +43,17 @@ initialize_vengefly::
 	ld a, VENGEFLY_HEALTH
 	ld [w_vengefly_health], a
 
+	xor a
+	ld [w_vengefly_counter_flashing], a
+	ld [w_vengefly_hit_side], a
+
 	; Set vengefly top left
 	ld a, [w_vengefly_position_y]
 	ld b, a
 	ld a, [w_vengefly_position_x_int]
 	ld c, a
 	ld d, T_VENGEFLY_TL
-	ld e, 0
+	ld e, %00100000
 	call RenderSimpleSprite
 
 	; Set vengefly top right
@@ -59,7 +63,7 @@ initialize_vengefly::
 	add 8
 	ld c, a
 	ld d, T_VENGEFLY_TR
-	ld e, 0
+	ld e, %00100000
 	call RenderSimpleSprite
 
 	; Set vengefly bottom left
@@ -69,7 +73,7 @@ initialize_vengefly::
 	ld a, [w_vengefly_position_x_int]
 	ld c, a
 	ld d, T_VENGEFLY_BL
-	ld e, 0
+	ld e, %00100000
 	call RenderSimpleSprite
 
 	; Set vengefly bottom right
@@ -80,15 +84,26 @@ initialize_vengefly::
 	add 8
 	ld c, a
 	ld d, T_VENGEFLY_BR
-	ld e, 0
+	ld e, %00100000
 	call RenderSimpleSprite
 
 	ret
 
 
 update_vengefly::
-	call vengefly_check_player_collision
 	call vengefly_ai
+
+	; Check if player is attacking, if they are, check if vengefly is getting hit
+	ld a, [w_player_counter_attack]
+	or a
+	jr z, .update_vengefly_player_collision
+	cp ATTACK_TIME + 1 ; We want to check against the active window of attack, not the after effects
+	jr nc, .update_vengefly_player_collision
+	call vengefly_check_slash_collision
+
+.update_vengefly_player_collision
+	call vengefly_check_player_collision
+
 	call draw_vengefly
 	ret
 

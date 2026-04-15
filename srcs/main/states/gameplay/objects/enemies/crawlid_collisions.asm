@@ -237,13 +237,13 @@ crawlid_check_slash_collision::
 	and %00100000 ; Only the x flip bit is useful for this
 	cp %00100000
 	jr z, :+
-	; Turned right
+	; Turned left
 	ld a, [w_object1_value]
 	add 4
 	ld [w_object1_value], a
 	jr .ld_x_player
 :
-	; Turned left
+	; Turned right
 	ld a, [w_object1_value]
 	sub 4
 	ld [w_object1_value], a
